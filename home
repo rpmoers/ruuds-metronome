@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ruud's Bass Metronome</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      background: #fff;
+      color: #111;
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    /* Segmented control (modes) */
+    .segmented {
+      display: flex;
+      border: 1px solid #ddd;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-bottom: 28px;
+      width: fit-content;
+    }
+    .segmented label {
+      padding: 10px 20px;
+      cursor: pointer;
+      background: #f0f0f0;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      transition: background 0.2s, color 0.2s;
+    }
+    .segmented input { display: none; }
+    .segmented input:checked + label {
+      background: #1A73E8;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* Control row */
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0 24px;
+      width: 600px;
+      justify-content: center;
+    }
+    input[type=range] { flex: 1; min-width: 160px; }
+    input[type=number], select {
+      width: 100px;
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      background: #fafafa;
+    }
+
+    /* Buttons */
+    button {
+      margin: 8px;
+      padding: 10px 28px;
+      border: none;
+      border-radius: 9999px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      color: white;
+    }
+    #startBtn { background: #34A853; }
+    #startBtn:hover { background: #0F9D58; transform: scale(1.05); }
+    #stopBtn { background: #EA4335; }
+    #stopBtn:hover { background: #C5221F; transform: scale(1.05); }
+
+    /* Metronome box */
+    #metronome {
+      margin: 40px auto 120px auto;
+      width: 200px; height: 300px;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      position: relative;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      display: none;
+      transition: background 0.2s ease;
+      overflow: hidden;
+    }
+    #arm {
+      width: 6px; height: 250px;
+      background: #111;
+      position: absolute;
+      bottom: 20px; left: 50%;
+      transform-origin: bottom center;
+      transform: rotate(0deg);
+    }
+    #weight {
+      width: 20px; height: 20px;
+      background: #ffbf12;
+      border-radius: 50%;
+      position: absolute;
+      top: 40px; left: -7px;
+    }
+
+    /* Colors mode sound toggle */
+    #colorSoundToggle {
+      display: none;
+      margin-top: 10px;
+      font-size: 0.95rem;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+    .switch input { display: none; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      border-radius: 20px;
+      transition: .3s;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px; width: 14px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .3s;
+    }
+    input:checked + .slider { background-color: #34A853; }
+    input:checked + .slider:before { transform: translateX(20px); }
+  </style>
+</head>
+<body>
+  <h1>Ruud’s Bass Metronome</h1>
+
+  <!-- Mode tabs -->
+  <div class="segmented">
+    <input type="radio" name="mode" id="modeSound" value="sound" checked>
+    <label for="modeSound">Sound</label>
+    <input type="radio" name="mode" id="modePendulum" value="pendulum">
+    <label for="modePendulum">Pendulum</label>
+    <input type="radio" name="mode" id="modeColors" value="colors">
+    <label for="modeColors">Colors</label>
+    <input type="radio" name="mode" id="modeRuud" value="ruud">
+    <label for="modeRuud">Ruud Mode</label>
+  </div>
+
+  <!-- BPM, Beats, Ramp all in one row -->
+  <div class="control-row">
+    <input type="range" id="bpmSlider" min="30" max="300" value="100">
+    <input type="number" id="bpmInput" min="30" max="300" value="100">
+    <select id="beats">
+      <option value="2">2/4</option>
+      <option value="3">3/4</option>
+      <option value="4" selected>4/4</option>
+      <option value="5">5/4</option>
+      <option value="6">6/8</option>
+    </select>
+    <select id="ramp">
+      <option value="off">Ramp off</option>
+      <option value="up">Ramp +1</option>
+      <option value="down">Ramp -1</option>
+    </select>
+  </div>
+
+  <!-- Transport -->
+  <div>
+    <button id="startBtn" onclick="startMetronome()">Start</button>
+    <button id="stopBtn" onclick="stopMetronome()">Stop</button>
+  </div>
+
+  <!-- Colors mode sound toggle -->
+  <div id="colorSoundToggle">
+    <label class="switch">
+      <input type="checkbox" id="colorSound" checked>
+      <span class="slider"></span>
+    </label>
+    <span>Sound</span>
+  </div>
+
+  <!-- Visual -->
+  <div id="metronome">
+    <div id="arm"><div id="weight"></div></div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+    let running = false;
+    let bpm = 100;
+    let beatsPerMeasure = 4;
+    let currentBeat = 0;
+    let barCounter = 0;
+    let nextBeatTime = 0;
+
+    const arm = document.getElementById("arm");
+    const metronomeBox = document.getElementById("metronome");
+    const bpmSlider = document.getElementById("bpmSlider");
+    const bpmInput = document.getElementById("bpmInput");
+    const beatsSelect = document.getElementById("beats");
+    const rampSelect = document.getElementById("ramp");
+    const colorSoundToggle = document.getElementById("colorSoundToggle");
+    const colorSound = document.getElementById("colorSound");
+
+    // Clamp helper
+    function clamp(v, lo, hi){ return Math.min(hi, Math.max(lo, v || 0)); }
+
+    bpmSlider.addEventListener("input", () => {
+      bpm = clamp(parseInt(bpmSlider.value, 10), 30, 300);
+      bpmInput.value = bpm;
+    });
+    bpmInput.addEventListener("input", () => {
+      bpm = clamp(parseInt(bpmInput.value, 10), 30, 300);
+      bpmSlider.value = bpm;
+    });
+    beatsSelect.addEventListener("change", () => {
+      beatsPerMeasure = parseInt(beatsSelect.value, 10);
+      currentBeat = 0;
+    });
+
+    function getMode() {
+      if (document.getElementById("modeSound").checked) return "sound";
+      if (document.getElementById("modePendulum").checked) return "pendulum";
+      if (document.getElementById("modeColors").checked) return "colors";
+      if (document.getElementById("modeRuud").checked) return "ruud";
+    }
+
+    function updateDisplayMode() {
+      const mode = getMode();
+      metronomeBox.style.display = (mode === "pendulum" || mode === "colors" || mode === "ruud") ? "block" : "none";
+      arm.style.display = (mode === "colors") ? "none" : "block";
+      colorSoundToggle.style.display = (mode === "colors") ? "flex" : "none";
+    }
+
+    function playClick(accent = false) {
+      const mode = getMode();
+      const allowSound = (mode === "sound" || mode === "pendulum" || mode === "ruud" || (mode === "colors" && colorSound.checked));
+      if (allowSound) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const envelope = audioCtx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(accent ? 1500 : 1000, audioCtx.currentTime);
+        envelope.gain.setValueAtTime(1, audioCtx.currentTime);
+        envelope.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.connect(envelope).connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+      }
+      if (mode === "colors" || mode === "ruud") {
+        metronomeBox.style.background = accent ? "#ffbf12" : "#666";
+        setTimeout(() => metronomeBox.style.background = "#f9f9f9", 120);
+      }
+    }
+
+    function animate(timestamp) {
+      if (!running) return;
+
+      const msPerBeat = (60 / bpm) * 1000;
+      if (!nextBeatTime) nextBeatTime = timestamp;
+
+      // pendulum swing
+      const mode = getMode();
+      if (mode === "pendulum" || mode === "ruud") {
+        const msPerSwing = msPerBeat * 2;
+        const swing = Math.sin((timestamp / msPerSwing) * Math.PI * 2) * 25;
+        arm.style.transform = `rotate(${swing}deg)`;
+      }
+
+      if (timestamp >= nextBeatTime) {
+        playClick(currentBeat === 0);
+
+        currentBeat = (currentBeat + 1) % beatsPerMeasure;
+
+        if (currentBeat === 0) {
+          barCounter++;
+
+          // Ramp up/down every 4 bars
+          if (rampSelect.value === "up" && barCounter % 4 === 0) {
+            bpm = clamp(bpm + 1, 30, 300);
+          }
+          if (rampSelect.value === "down" && barCounter % 4 === 0) {
+            bpm = clamp(bpm - 1, 30, 300);
+          }
+          bpmSlider.value = bpm;
+          bpmInput.value = bpm;
+
+          // Ruud mode chaos
+          if (mode === "ruud") {
+            const drift = (Math.random() < 0.5 ? -1 : 1) * (5 + Math.floor(Math.random() * 6));
+            bpm = clamp(bpm + drift, 30, 300);
+            bpmSlider.value = bpm;
+            bpmInput.value = bpm;
+          }
+        }
+
+        nextBeatTime += msPerBeat;
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function startMetronome() {
+      bpm = clamp(parseInt(bpmSlider.value, 10), 30, 300);
+      beatsPerMeasure = parseInt(beatsSelect.value, 10);
+
+      updateDisplayMode();
+      running = true;
+      currentBeat = 0;
+      barCounter = 0;
+
+      nextBeatTime = 0;
+      requestAnimationFrame(animate);
+    }
+
+    function stopMetronome() {
+      running = false;
+      arm.style.transform = "rotate(0deg)";
+      metronomeBox.style.background = "#f9f9f9";
+    }
+
+    // Mode switching
+    document.querySelectorAll("input[name='mode']").forEach(el => {
+      el.addEventListener("change", updateDisplayMode);
+    });
+
+    // Keyboard: Space / Enter toggles start/stop
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" || e.code === "Enter") {
+        e.preventDefault();
+        running ? stopMetronome() : startMetronome();
+      }
+    });
+
+    updateDisplayMode();
+  </script>
+</body>
+</html>
