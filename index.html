@@ -18,7 +18,7 @@
     h1 {
       font-size: 1.8rem;
       font-weight: 600;
-      margin-bottom: 16px;
+      margin-bottom: 40px; /* extra space below title */
       text-align: center;
     }
 
@@ -57,16 +57,16 @@
     @media (max-width: 480px) {
       .segmented label {
         font-size: 0.75rem;
-        padding: 8px;
+        padding: 6px;
       }
     }
 
     /* Control row */
     .control-row {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       margin: 12px 0 20px;
       width: 100%;
       max-width: 500px;
@@ -74,21 +74,26 @@
     }
     input[type=range] {
       flex: 1;
-      min-width: 140px;
+      min-width: 100px;
     }
     input[type=number], select {
       flex: 0 0 auto;
-      width: 80px;
+      width: 70px;
       padding: 6px 8px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 1rem;
+      font-size: 0.9rem;
       background: #fafafa;
     }
 
     /* Buttons */
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
     button {
-      margin: 6px;
       padding: 10px 20px;
       border: none;
       border-radius: 9999px;
@@ -104,9 +109,9 @@
 
     /* Metronome box */
     #metronome {
-      margin: 30px auto 60px auto;
-      width: 80%;
-      max-width: 220px;
+      margin: 30px auto 20px auto;
+      width: 90%;
+      max-width: 240px;
       aspect-ratio: 2 / 3;
       background: #f9f9f9;
       border: 1px solid #ddd;
@@ -116,23 +121,6 @@
       display: none;
       transition: background 0.2s ease;
       overflow: hidden;
-    }
-    #arm {
-      width: 4px; height: 80%;
-      background: #111;
-      position: absolute;
-      bottom: 10%;
-      left: 50%;
-      transform-origin: bottom center;
-      transform: rotate(0deg);
-    }
-    #weight {
-      width: 16px; height: 16px;
-      background: #ffbf12;
-      border-radius: 50%;
-      position: absolute;
-      top: 15%;
-      left: -6px;
     }
 
     /* Colors mode sound toggle */
@@ -179,8 +167,6 @@
   <div class="segmented">
     <input type="radio" name="mode" id="modeSound" value="sound" checked>
     <label for="modeSound">Sound</label>
-    <input type="radio" name="mode" id="modePendulum" value="pendulum">
-    <label for="modePendulum">Pendulum</label>
     <input type="radio" name="mode" id="modeColors" value="colors">
     <label for="modeColors">Colors</label>
     <input type="radio" name="mode" id="modeRuud" value="ruud">
@@ -205,12 +191,6 @@
     </select>
   </div>
 
-  <!-- Transport -->
-  <div>
-    <button id="startBtn" onclick="startMetronome()">Start</button>
-    <button id="stopBtn" onclick="stopMetronome()">Stop</button>
-  </div>
-
   <!-- Colors mode sound toggle -->
   <div id="colorSoundToggle">
     <label class="switch">
@@ -221,8 +201,12 @@
   </div>
 
   <!-- Visual -->
-  <div id="metronome">
-    <div id="arm"><div id="weight"></div></div>
+  <div id="metronome"></div>
+
+  <!-- Transport -->
+  <div class="buttons">
+    <button id="startBtn" onclick="startMetronome()">Start</button>
+    <button id="stopBtn" onclick="stopMetronome()">Stop</button>
   </div>
 
   <script>
@@ -232,9 +216,9 @@
     let beatsPerMeasure = 4;
     let currentBeat = 0;
     let barCounter = 0;
-    let nextBeatTime = 0;
+    let nextNoteTime = 0.0;
+    let timerID;
 
-    const arm = document.getElementById("arm");
     const metronomeBox = document.getElementById("metronome");
     const bpmSlider = document.getElementById("bpmSlider");
     const bpmInput = document.getElementById("bpmInput");
@@ -260,32 +244,30 @@
 
     function getMode() {
       if (document.getElementById("modeSound").checked) return "sound";
-      if (document.getElementById("modePendulum").checked) return "pendulum";
       if (document.getElementById("modeColors").checked) return "colors";
       if (document.getElementById("modeRuud").checked) return "ruud";
     }
 
     function updateDisplayMode() {
       const mode = getMode();
-      metronomeBox.style.display = (mode === "pendulum" || mode === "colors" || mode === "ruud") ? "block" : "none";
-      arm.style.display = (mode === "colors") ? "none" : "block";
+      metronomeBox.style.display = (mode === "colors" || mode === "ruud") ? "block" : "none";
       colorSoundToggle.style.display = (mode === "colors") ? "flex" : "none";
     }
 
-    function playClick(accent = false) {
+    function playClick(accent = false, time = 0) {
       const mode = getMode();
-      const allowSound = (mode === "sound" || mode === "pendulum" || mode === "ruud" || (mode === "colors" && colorSound.checked));
+      const allowSound = (mode === "sound" || mode === "ruud" || (mode === "colors" && colorSound.checked));
       if (allowSound) {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const envelope = audioCtx.createGain();
         osc.type = "square";
-        osc.frequency.setValueAtTime(accent ? 1500 : 1000, audioCtx.currentTime);
-        envelope.gain.setValueAtTime(1, audioCtx.currentTime);
-        envelope.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(accent ? 1500 : 1000, time);
+        envelope.gain.setValueAtTime(1, time);
+        envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
         osc.connect(envelope).connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
+        osc.start(time);
+        osc.stop(time + 0.1);
       }
       if (mode === "colors" || mode === "ruud") {
         metronomeBox.style.background = accent ? "#ffbf12" : "#666";
@@ -293,23 +275,25 @@
       }
     }
 
-    function animate(timestamp) {
-      if (!running) return;
+    // Scheduler
+    const lookahead = 25.0; // ms
+    const scheduleAheadTime = 0.1; // sec
 
-      const msPerBeat = (60 / bpm) * 1000;
-      if (!nextBeatTime) nextBeatTime = timestamp;
+    function nextNote() {
+      const secondsPerBeat = 60.0 / bpm;
+      nextNoteTime += secondsPerBeat;
+      currentBeat = (currentBeat + 1) % beatsPerMeasure;
+    }
 
-      const mode = getMode();
-      if (mode === "pendulum" || mode === "ruud") {
-        const msPerSwing = msPerBeat * 2;
-        const swing = Math.sin((timestamp / msPerSwing) * Math.PI * 2) * 25;
-        arm.style.transform = `rotate(${swing}deg)`;
-      }
+    function scheduleNote(beatNumber, time) {
+      const accent = (beatNumber === 0);
+      playClick(accent, time);
+    }
 
-      if (timestamp >= nextBeatTime) {
-        playClick(currentBeat === 0);
-
-        currentBeat = (currentBeat + 1) % beatsPerMeasure;
+    function scheduler() {
+      while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+        scheduleNote(currentBeat, nextNoteTime);
+        nextNote();
 
         if (currentBeat === 0) {
           barCounter++;
@@ -323,34 +307,32 @@
           bpmSlider.value = bpm;
           bpmInput.value = bpm;
 
-          if (mode === "ruud") {
+          if (getMode() === "ruud") {
             const drift = (Math.random() < 0.5 ? -1 : 1) * (5 + Math.floor(Math.random() * 6));
             bpm = clamp(bpm + drift, 30, 300);
             bpmSlider.value = bpm;
             bpmInput.value = bpm;
           }
         }
-
-        nextBeatTime += msPerBeat;
       }
-
-      requestAnimationFrame(animate);
+      timerID = setTimeout(scheduler, lookahead);
     }
 
     function startMetronome() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       bpm = clamp(parseInt(bpmSlider.value, 10), 30, 300);
       beatsPerMeasure = parseInt(beatsSelect.value, 10);
-      updateDisplayMode();
-      running = true;
       currentBeat = 0;
       barCounter = 0;
-      nextBeatTime = 0;
-      requestAnimationFrame(animate);
+      nextNoteTime = audioCtx.currentTime;
+      updateDisplayMode();
+      running = true;
+      scheduler();
     }
 
     function stopMetronome() {
       running = false;
-      arm.style.transform = "rotate(0deg)";
+      clearTimeout(timerID);
       metronomeBox.style.background = "#f9f9f9";
     }
 
