@@ -1,207 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ruud's Bass Metronome</title>
+
+  <!-- Prevent caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-      background: #fff;
-      color: #111;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background:#fff; color:#111; margin:0; padding:20px;
+      display:flex; flex-direction:column; align-items:center;
+      transition: background 0.3s, color 0.3s;
     }
-    h1 {
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin-bottom: 40px; /* extra space below title */
-      text-align: center;
-    }
+    h1 { font-size:1.8rem; font-weight:600; margin-bottom:40px; text-align:center; }
 
-    /* Segmented control (Material style) */
-    .segmented {
-      display: flex;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 20px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .segmented label {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      font-size: 0.9rem;
-      cursor: pointer;
-      background: #f5f5f5;
-      transition: background 0.2s, color 0.2s;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .segmented input { display: none; }
-    .segmented input:checked + label {
-      background: #1A73E8;
-      color: white;
-      font-weight: 500;
-    }
-    .segmented label:active {
-      background: #e0e0e0;
-    }
-
-    @media (max-width: 480px) {
-      .segmented label {
-        font-size: 0.75rem;
-        padding: 6px;
-      }
-    }
-
-    /* Control row */
     .control-row {
-      display: flex;
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: 6px;
-      margin: 12px 0 20px;
-      width: 100%;
-      max-width: 500px;
-      justify-content: center;
+      display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+      gap:8px; margin:12px 0 20px; width:100%; max-width:650px;
     }
-    input[type=range] {
-      flex: 1;
-      min-width: 100px;
+    .bpm-group, .other-group { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; }
+    .bpm-group { flex:2; } .other-group { flex:1; }
+    .bpm-control { display:flex; align-items:center; gap:4px; flex:1; }
+    .bpm-btn {
+      padding:0 12px; height:32px; min-width:32px; border-radius:6px; border:1px solid #ccc;
+      background:#f5f5f5; font-size:1rem; font-weight:500; cursor:pointer; color:#111;
+      transition: background 0.3s, color 0.3s, border-color 0.3s;
     }
+    .bpm-btn:hover { background:#e0e0e0; transform:scale(1.03); }
+    input[type=range] { flex:1; min-width:100px; }
     input[type=number], select {
-      flex: 0 0 auto;
-      width: 70px;
-      padding: 6px 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      background: #fafafa;
+      padding:6px 8px; border:1px solid #ccc; border-radius:6px;
+      font-size:0.9rem; background:#fafafa; color:#111; transition: background 0.3s, color 0.3s, border-color 0.3s;
     }
+    input[type=number] { width:60px; text-align:center; }
 
-    /* Buttons */
-    .buttons {
-      margin-top: 20px;
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 9999px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-      color: white;
-    }
-    #startBtn { background: #34A853; }
-    #startBtn:hover { background: #0F9D58; transform: scale(1.05); }
-    #stopBtn { background: #EA4335; }
-    #stopBtn:hover { background: #C5221F; transform: scale(1.05); }
-
-    /* Metronome box */
-    #metronome {
-      margin: 30px auto 20px auto;
-      width: 90%;
-      max-width: 240px;
-      aspect-ratio: 2 / 3;
-      background: #f9f9f9;
-      border: 1px solid #ddd;
-      border-radius: 16px;
-      position: relative;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      display: none;
-      transition: background 0.2s ease;
-      overflow: hidden;
-    }
-
-    /* Colors mode sound toggle */
-    #colorSoundToggle {
-      display: none;
-      margin-top: 10px;
-      font-size: 0.9rem;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 36px;
-      height: 18px;
-    }
-    .switch input { display: none; }
+    /* Switch */
+    .switch { position:relative; display:inline-block; width:46px; height:24px; }
+    .switch input { display:none; }
     .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #ccc;
-      border-radius: 20px;
-      transition: .3s;
+      position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0;
+      background:#ccc; border-radius:24px; transition:.3s;
     }
     .slider:before {
-      position: absolute;
-      content: "";
-      height: 12px; width: 12px;
-      left: 3px; bottom: 3px;
-      background-color: white;
-      border-radius: 50%;
-      transition: .3s;
+      position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px;
+      background:white; border-radius:50%; transition:.3s;
     }
-    input:checked + .slider { background-color: #34A853; }
-    input:checked + .slider:before { transform: translateX(18px); }
+    input:checked + .slider { background:#34A853; }
+    input:checked + .slider:before { transform:translateX(22px); }
+
+    .buttons { margin-top:20px; display:flex; gap:12px; justify-content:center; }
+    button { padding:10px 20px; border:none; border-radius:9999px; font-size:1rem; cursor:pointer; color:white; transition: background 0.3s; }
+    #startBtn { background:#34A853; } #startBtn:hover { background:#0F9D58; }
+    #stopBtn { background:#EA4335; } #stopBtn:hover { background:#C5221F; }
+
+    @media (max-width:600px){
+      .control-row{flex-direction:column; align-items:stretch;}
+      .bpm-group,.other-group{justify-content:center;width:100%;}
+    }
+
+    /* 🌙 Dark mode styles */
+    body.dark-mode { background:#121212; color:#eee; }
+    body.dark-mode .bpm-btn { background:#333; color:#eee; border-color:#555; }
+    body.dark-mode .bpm-btn:hover { background:#444; }
+    body.dark-mode input[type=number],
+    body.dark-mode select { background:#222; color:#eee; border-color:#555; }
   </style>
 </head>
 <body>
   <h1>Ruud’s Bass Metronome</h1>
 
-  <!-- Mode tabs -->
-  <div class="segmented">
-    <input type="radio" name="mode" id="modeSound" value="sound" checked>
-    <label for="modeSound">Sound</label>
-    <input type="radio" name="mode" id="modeColors" value="colors">
-    <label for="modeColors">Colors</label>
-    <input type="radio" name="mode" id="modeRuud" value="ruud">
-    <label for="modeRuud">Ruud Mode</label>
-  </div>
-
-  <!-- BPM, Beats, Ramp all in one row -->
+  <!-- Controls -->
   <div class="control-row">
-    <input type="range" id="bpmSlider" min="30" max="300" value="100">
-    <input type="number" id="bpmInput" min="30" max="300" value="100">
-    <select id="beats">
-      <option value="2">2/4</option>
-      <option value="3">3/4</option>
-      <option value="4" selected>4/4</option>
-      <option value="5">5/4</option>
-      <option value="6">6/8</option>
-    </select>
-    <select id="ramp">
-      <option value="off">Ramp off</option>
-      <option value="up">Ramp +1</option>
-      <option value="down">Ramp -1</option>
-    </select>
+    <div class="bpm-group">
+      <div class="bpm-control">
+        <button class="bpm-btn" id="bpmDown">–</button>
+        <input type="range" id="bpmSlider" min="30" max="300" value="100">
+        <button class="bpm-btn" id="bpmUp">+</button>
+      </div>
+      <input type="number" id="bpmInput" min="30" max="300" value="100">
+    </div>
+    <div class="other-group">
+      <select id="beats">
+        <option value="2">2/4</option>
+        <option value="3">3/4</option>
+        <option value="4" selected>4/4</option>
+        <option value="5">5/4</option>
+        <option value="6">6/8</option>
+      </select>
+      <select id="ramp">
+        <option value="off">Ramp off</option>
+        <option value="up">Ramp up</option>
+        <option value="down">Ramp down</option>
+      </select>
+      <select id="rampStep" style="display:none;">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+      </select>
+    </div>
   </div>
 
-  <!-- Colors mode sound toggle -->
-  <div id="colorSoundToggle">
-    <label class="switch">
-      <input type="checkbox" id="colorSound" checked>
-      <span class="slider"></span>
-    </label>
-    <span>Sound</span>
+  <!-- Slap + Dark Mode inline -->
+  <div style="margin:10px 0; display:flex; align-items:center; gap:20px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span>Slap</span>
+      <label class="switch">
+        <input type="checkbox" id="slapSwitch">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span>Dark Mode</span>
+      <label class="switch">
+        <input type="checkbox" id="darkSwitch">
+        <span class="slider"></span>
+      </label>
+    </div>
   </div>
-
-  <!-- Visual -->
-  <div id="metronome"></div>
 
   <!-- Transport -->
   <div class="buttons">
@@ -210,144 +132,134 @@
   </div>
 
   <script>
+    // Version check (bump this number each time you deploy)
+    const VERSION = "1.0.1";
+    const lastVersion = localStorage.getItem("metronome_version");
+    if (lastVersion && lastVersion !== VERSION) {
+      console.log("New version detected, reloading...");
+      localStorage.setItem("metronome_version", VERSION);
+      location.reload(true);
+    } else {
+      localStorage.setItem("metronome_version", VERSION);
+    }
+
     let audioCtx = null;
-    let running = false;
-    let bpm = 100;
-    let beatsPerMeasure = 4;
-    let currentBeat = 0;
-    let barCounter = 0;
-    let nextNoteTime = 0.0;
-    let timerID;
+    let baseBuffer = null;
+    let slapNormalBuffer = null;
+    let slapAccentBuffer = null;
+    let samplesReady = false;
 
-    const metronomeBox = document.getElementById("metronome");
-    const bpmSlider = document.getElementById("bpmSlider");
-    const bpmInput = document.getElementById("bpmInput");
-    const beatsSelect = document.getElementById("beats");
-    const rampSelect = document.getElementById("ramp");
-    const colorSoundToggle = document.getElementById("colorSoundToggle");
-    const colorSound = document.getElementById("colorSound");
+    const BASE_URL = "https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/metronome-85688.mp3";
+    const SLAP_NORMAL_URL = "https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/Alesis-S4-Plus-Muted-Pops-C3.wav";
+    const SLAP_ACCENT_URL = "https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/Korg-N1R-Slap-It-C1.wav";
 
-    function clamp(v, lo, hi){ return Math.min(hi, Math.max(lo, v || 0)); }
-
-    bpmSlider.addEventListener("input", () => {
-      bpm = clamp(parseInt(bpmSlider.value, 10), 30, 300);
-      bpmInput.value = bpm;
-    });
-    bpmInput.addEventListener("input", () => {
-      bpm = clamp(parseInt(bpmInput.value, 10), 30, 300);
-      bpmSlider.value = bpm;
-    });
-    beatsSelect.addEventListener("change", () => {
-      beatsPerMeasure = parseInt(beatsSelect.value, 10);
-      currentBeat = 0;
-    });
-
-    function getMode() {
-      if (document.getElementById("modeSound").checked) return "sound";
-      if (document.getElementById("modeColors").checked) return "colors";
-      if (document.getElementById("modeRuud").checked) return "ruud";
+    async function loadSample(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const arr = await res.arrayBuffer();
+      return await audioCtx.decodeAudioData(arr);
     }
 
-    function updateDisplayMode() {
-      const mode = getMode();
-      metronomeBox.style.display = (mode === "colors" || mode === "ruud") ? "block" : "none";
-      colorSoundToggle.style.display = (mode === "colors") ? "flex" : "none";
-    }
-
-    function playClick(accent = false, time = 0) {
-      const mode = getMode();
-      const allowSound = (mode === "sound" || mode === "ruud" || (mode === "colors" && colorSound.checked));
-      if (allowSound) {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const envelope = audioCtx.createGain();
-        osc.type = "square";
-        osc.frequency.setValueAtTime(accent ? 1500 : 1000, time);
-        envelope.gain.setValueAtTime(1, time);
-        envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
-        osc.connect(envelope).connect(audioCtx.destination);
-        osc.start(time);
-        osc.stop(time + 0.1);
-      }
-      if (mode === "colors" || mode === "ruud") {
-        metronomeBox.style.background = accent ? "#ffbf12" : "#666";
-        setTimeout(() => metronomeBox.style.background = "#f9f9f9", 120);
+    async function loadSamplesOnce() {
+      if (samplesReady) return;
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      try {
+        baseBuffer = await loadSample(BASE_URL);
+        slapNormalBuffer = await loadSample(SLAP_NORMAL_URL);
+        slapAccentBuffer = await loadSample(SLAP_ACCENT_URL);
+        samplesReady = true;
+      } catch (e) {
+        console.error("Error loading samples:", e);
       }
     }
+
+    function playClick(accent=false, time=0) {
+      if (!audioCtx || !samplesReady) return;
+      const slapMode = document.getElementById("slapSwitch").checked;
+      let src = audioCtx.createBufferSource();
+      let gainNode = audioCtx.createGain();
+
+      if (slapMode) {
+        // Slap mode: Muted Pops for normal, Slap-It for accents
+        src.buffer = accent ? slapAccentBuffer : slapNormalBuffer;
+        gainNode.gain.value = 1.0;
+      } else {
+        // Normal mode: base sample, accent louder + pitched
+        src.buffer = baseBuffer;
+        gainNode.gain.value = accent ? 1.6 : 1.0;
+        src.playbackRate.value = accent ? 1.1 : 1.0;
+      }
+
+      src.connect(gainNode).connect(audioCtx.destination);
+      src.start(time);
+    }
+
+    // ===== State =====
+    let running=false, bpm=100, beatsPerMeasure=4, currentBeat=0, barCounter=0, nextNoteTime=0.0, timerID;
+    const bpmSlider=document.getElementById("bpmSlider");
+    const bpmInput=document.getElementById("bpmInput");
+    const bpmUp=document.getElementById("bpmUp");
+    const bpmDown=document.getElementById("bpmDown");
+    const beatsSelect=document.getElementById("beats");
+    const rampSelect=document.getElementById("ramp");
+    const rampStep=document.getElementById("rampStep");
+
+    function clamp(v,lo,hi){return Math.min(hi,Math.max(lo,v||0));}
+    function updateBpm(val){ bpm=clamp(val,30,300); bpmSlider.value=bpm; bpmInput.value=bpm; }
+    bpmSlider.addEventListener("input",()=>updateBpm(parseInt(bpmSlider.value,10)));
+    bpmInput.addEventListener("change",()=>{const v=parseInt(bpmInput.value,10); if(!isNaN(v)) updateBpm(v);});
+    bpmUp.addEventListener("click",()=>updateBpm(bpm+1));
+    bpmDown.addEventListener("click",()=>updateBpm(bpm-1));
+    beatsSelect.addEventListener("change",()=>{beatsPerMeasure=parseInt(beatsSelect.value,10); currentBeat=0;});
+
+    rampSelect.addEventListener("change",()=>{
+      rampStep.style.display=(rampSelect.value==="up"||rampSelect.value==="down")?"inline-block":"none";
+    });
 
     // Scheduler
-    const lookahead = 25.0; // ms
-    const scheduleAheadTime = 0.1; // sec
-
-    function nextNote() {
-      const secondsPerBeat = 60.0 / bpm;
-      nextNoteTime += secondsPerBeat;
-      currentBeat = (currentBeat + 1) % beatsPerMeasure;
-    }
-
-    function scheduleNote(beatNumber, time) {
-      const accent = (beatNumber === 0);
-      playClick(accent, time);
-    }
-
-    function scheduler() {
-      while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
-        scheduleNote(currentBeat, nextNoteTime);
+    const lookahead=25.0, scheduleAheadTime=0.1;
+    function nextNote(){ const secPerBeat=60.0/bpm; nextNoteTime+=secPerBeat; currentBeat=(currentBeat+1)%beatsPerMeasure; }
+    function scheduleNote(beatNumber,time){ playClick(beatNumber===0,time); }
+    function scheduler(){
+      if(!running||!audioCtx)return;
+      while(nextNoteTime<audioCtx.currentTime+scheduleAheadTime){
+        scheduleNote(currentBeat,nextNoteTime);
         nextNote();
-
-        if (currentBeat === 0) {
+        if(currentBeat===0){
           barCounter++;
-
-          if (rampSelect.value === "up" && barCounter % 4 === 0) {
-            bpm = clamp(bpm + 1, 30, 300);
-          }
-          if (rampSelect.value === "down" && barCounter % 4 === 0) {
-            bpm = clamp(bpm - 1, 30, 300);
-          }
-          bpmSlider.value = bpm;
-          bpmInput.value = bpm;
-
-          if (getMode() === "ruud") {
-            const drift = (Math.random() < 0.5 ? -1 : 1) * (5 + Math.floor(Math.random() * 6));
-            bpm = clamp(bpm + drift, 30, 300);
-            bpmSlider.value = bpm;
-            bpmInput.value = bpm;
+          if(barCounter%4===0){
+            const step=parseInt(rampStep.value||"1",10);
+            if(rampSelect.value==="up") updateBpm(bpm+step);
+            if(rampSelect.value==="down") updateBpm(bpm-step);
           }
         }
       }
-      timerID = setTimeout(scheduler, lookahead);
+      timerID=setTimeout(scheduler,lookahead);
     }
 
-    function startMetronome() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      bpm = clamp(parseInt(bpmSlider.value, 10), 30, 300);
-      beatsPerMeasure = parseInt(beatsSelect.value, 10);
-      currentBeat = 0;
-      barCounter = 0;
-      nextNoteTime = audioCtx.currentTime;
-      updateDisplayMode();
-      running = true;
-      scheduler();
+    async function startMetronome(){
+      if(running) return;
+      if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      try{ await audioCtx.resume(); }catch{}
+      await loadSamplesOnce();   // ✅ ensure samples load before start
+      updateBpm(parseInt(bpmSlider.value,10));
+      beatsPerMeasure=parseInt(beatsSelect.value,10);
+      currentBeat=0; barCounter=0; nextNoteTime=audioCtx.currentTime+0.05;
+      running=true; scheduler();
     }
+    function stopMetronome(){ running=false; if(timerID) clearTimeout(timerID); }
 
-    function stopMetronome() {
-      running = false;
-      clearTimeout(timerID);
-      metronomeBox.style.background = "#f9f9f9";
-    }
-
-    document.querySelectorAll("input[name='mode']").forEach(el => {
-      el.addEventListener("change", updateDisplayMode);
+    document.addEventListener("keydown",(e)=>{
+      if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); running?stopMetronome():startMetronome(); }
     });
 
-    document.addEventListener("keydown", (e) => {
-      if (e.code === "Space" || e.code === "Enter") {
-        e.preventDefault();
-        running ? stopMetronome() : startMetronome();
-      }
+    // Dark mode switch
+    const darkSwitch = document.getElementById("darkSwitch");
+    darkSwitch.addEventListener("change", () => {
+      document.body.classList.toggle("dark-mode", darkSwitch.checked);
     });
 
-    updateDisplayMode();
+    window.startMetronome=startMetronome; window.stopMetronome=stopMetronome;
   </script>
 </body>
 </html>
