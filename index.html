@@ -5,70 +5,250 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ruud's Bass Metronome</title>
 
-  <!-- Prevent caching -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
   <style>
+    :root {
+      --gray-100: #f9f9f9;
+      --gray-400: #bdbdbd;
+      --gray-600: #757575;
+      --gray-800: #424242;
+      --gray-900: #212121;
+      --accent-green: #34A853;
+      --accent-green-dark: #0F9D58;
+      --accent-red: #EA4335;
+      --accent-red-dark: #C5221F;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-      background:#fff; color:#111; margin:0; padding:20px;
-      display:flex; flex-direction:column; align-items:center;
+      background: var(--gray-100);
+      color: var(--gray-900);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       transition: background 0.3s, color 0.3s;
     }
-    h1 { font-size:1.8rem; font-weight:600; margin-bottom:40px; text-align:center; }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 40px;
+      text-align: center;
+      color: var(--gray-800);
+    }
 
     .control-row {
-      display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
-      gap:8px; margin:12px 0 20px; width:100%; max-width:650px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 12px 0 20px;
+      width: 100%;
+      max-width: 650px;
     }
-    .bpm-group, .other-group { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; }
-    .bpm-group { flex:2; } .other-group { flex:1; }
-    .bpm-control { display:flex; align-items:center; gap:4px; flex:1; }
+    .bpm-group, .other-group {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .bpm-group { flex: 2; }
+    .other-group { flex: 1; }
+
+    .bpm-control {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+    }
+
     .bpm-btn {
-      padding:0 12px; height:32px; min-width:32px; border-radius:6px; border:1px solid #ccc;
-      background:#f5f5f5; font-size:1rem; font-weight:500; cursor:pointer; color:#111;
-      transition: background 0.3s, color 0.3s, border-color 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 32px;
+      width: 32px;
+      border-radius: 6px;
+      border: 1px solid var(--gray-400);
+      background: var(--gray-100);
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--gray-800);
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
     }
-    .bpm-btn:hover { background:#e0e0e0; transform:scale(1.03); }
-    input[type=range] { flex:1; min-width:100px; }
+    .bpm-btn:hover {
+      background: var(--gray-400);
+      color: var(--gray-100);
+    }
+
+    /* Range slider */
+    input[type=range] {
+      flex: 1;
+      min-width: 100px;
+      appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--gray-400);
+      outline: none;
+      margin: 0;
+      cursor: pointer;
+      --min: 30;
+      --max: 300;
+      --value: 100;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(
+        to right,
+        var(--accent-green) 0%,
+        var(--accent-green) calc((var(--value) - var(--min)) / (var(--max) - var(--min)) * 100%),
+        var(--gray-400) calc((var(--value) - var(--min)) / (var(--max) - var(--min)) * 100%),
+        var(--gray-400) 100%
+      );
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      cursor: pointer;
+      border: none;
+      position: relative;
+      z-index: 2;
+      transition: transform 0.2s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+    input[type=range]::-moz-range-track {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--gray-400);
+    }
+    input[type=range]::-moz-range-progress {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--accent-green);
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    input[type=range]::-moz-range-thumb:hover { transform: scale(1.1); }
+
     input[type=number], select {
-      padding:6px 8px; border:1px solid #ccc; border-radius:6px;
-      font-size:0.9rem; background:#fafafa; color:#111; transition: background 0.3s, color 0.3s, border-color 0.3s;
+      padding: 6px 8px;
+      border: 1px solid var(--gray-400);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: var(--gray-100);
+      color: var(--gray-900);
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      cursor: pointer;
     }
-    input[type=number] { width:60px; text-align:center; }
+    input[type=number]:hover, select:hover {
+      background: var(--gray-400);
+      color: var(--gray-100);
+    }
 
     /* Switch */
-    .switch { position:relative; display:inline-block; width:46px; height:24px; }
-    .switch input { display:none; }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
+      cursor: pointer;
+    }
+    .switch input { display: none; }
     .slider {
-      position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0;
-      background:#ccc; border-radius:24px; transition:.3s;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--gray-400);
+      border-radius: 24px;
+      transition: background 0.3s;
     }
     .slider:before {
-      position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px;
-      background:white; border-radius:50%; transition:.3s;
+      position: absolute;
+      content: "";
+      height: 18px; width: 18px;
+      left: 3px; bottom: 3px;
+      background: var(--gray-100);
+      border-radius: 50%;
+      transition: .3s;
     }
-    input:checked + .slider { background:#34A853; }
-    input:checked + .slider:before { transform:translateX(22px); }
+    .switch:hover .slider { background: var(--gray-600); }
+    input:checked + .slider { background: var(--accent-green); }
+    input:checked + .slider:before { transform: translateX(22px); }
 
-    .buttons { margin-top:20px; display:flex; gap:12px; justify-content:center; }
-    button { padding:10px 20px; border:none; border-radius:9999px; font-size:1rem; cursor:pointer; color:white; transition: background 0.3s; }
-    #startBtn { background:#34A853; } #startBtn:hover { background:#0F9D58; }
-    #stopBtn { background:#EA4335; } #stopBtn:hover { background:#C5221F; }
+    /* Buttons */
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 9999px;
+      font-size: 1rem;
+      cursor: pointer;
+      color: white;
+      transition: background 0.3s;
+    }
+    #startBtn { background: var(--accent-green); }
+    #startBtn:hover { background: var(--accent-green-dark); }
+    #stopBtn { background: var(--accent-red); display: none; }
+    #stopBtn:hover { background: var(--accent-red-dark); }
 
     @media (max-width:600px){
       .control-row{flex-direction:column; align-items:stretch;}
       .bpm-group,.other-group{justify-content:center;width:100%;}
     }
 
-    /* 🌙 Dark mode styles */
-    body.dark-mode { background:#121212; color:#eee; }
-    body.dark-mode .bpm-btn { background:#333; color:#eee; border-color:#555; }
-    body.dark-mode .bpm-btn:hover { background:#444; }
-    body.dark-mode input[type=number],
-    body.dark-mode select { background:#222; color:#eee; border-color:#555; }
+    /* Dark mode */
+    body.dark-mode { background: var(--gray-900); color: var(--gray-100); }
+    body.dark-mode .bpm-btn {
+      background: var(--gray-800);
+      color: var(--gray-100);
+      border-color: var(--gray-600);
+    }
+    body.dark-mode .bpm-btn:hover { background: var(--gray-600); }
+    body.dark-mode input[type=number], body.dark-mode select {
+      background: var(--gray-800);
+      color: var(--gray-100);
+      border-color: var(--gray-600);
+    }
+    body.dark-mode input[type=number]:hover, body.dark-mode select:hover {
+      background: var(--gray-600);
+      color: var(--gray-100);
+    }
+    body.dark-mode input[type=range] { background: var(--gray-600); }
+    body.dark-mode input[type=range]::-webkit-slider-runnable-track {
+      background: linear-gradient(
+        to right,
+        var(--accent-green) 0%,
+        var(--accent-green) calc((var(--value) - var(--min)) / (var(--max) - var(--min)) * 100%),
+        var(--gray-600) calc((var(--value) - var(--min)) / (var(--max) - var(--min)) * 100%),
+        var(--gray-600) 100%
+      );
+    }
+    body.dark-mode input[type=range]::-moz-range-track { background: var(--gray-600); }
+    body.dark-mode input[type=range]::-moz-range-progress { background: var(--accent-green); }
+    body.dark-mode .slider { background: var(--gray-600); }
+    body.dark-mode .slider:before { background: var(--gray-100); }
   </style>
 </head>
 <body>
@@ -127,16 +307,14 @@
 
   <!-- Transport -->
   <div class="buttons">
-    <button id="startBtn" onclick="startMetronome()">Start</button>
-    <button id="stopBtn" onclick="stopMetronome()">Stop</button>
+    <button id="startBtn">Start</button>
+    <button id="stopBtn">Stop</button>
   </div>
 
   <script>
-    // Version check (bump this number each time you deploy)
-    const VERSION = "1.0.1";
+    const VERSION = "1.0.8";
     const lastVersion = localStorage.getItem("metronome_version");
     if (lastVersion && lastVersion !== VERSION) {
-      console.log("New version detected, reloading...");
       localStorage.setItem("metronome_version", VERSION);
       location.reload(true);
     } else {
@@ -180,11 +358,9 @@
       let gainNode = audioCtx.createGain();
 
       if (slapMode) {
-        // Slap mode: Muted Pops for normal, Slap-It for accents
         src.buffer = accent ? slapAccentBuffer : slapNormalBuffer;
         gainNode.gain.value = 1.0;
       } else {
-        // Normal mode: base sample, accent louder + pitched
         src.buffer = baseBuffer;
         gainNode.gain.value = accent ? 1.6 : 1.0;
         src.playbackRate.value = accent ? 1.1 : 1.0;
@@ -194,7 +370,6 @@
       src.start(time);
     }
 
-    // ===== State =====
     let running=false, bpm=100, beatsPerMeasure=4, currentBeat=0, barCounter=0, nextNoteTime=0.0, timerID;
     const bpmSlider=document.getElementById("bpmSlider");
     const bpmInput=document.getElementById("bpmInput");
@@ -203,9 +378,16 @@
     const beatsSelect=document.getElementById("beats");
     const rampSelect=document.getElementById("ramp");
     const rampStep=document.getElementById("rampStep");
+    const startBtn=document.getElementById("startBtn");
+    const stopBtn=document.getElementById("stopBtn");
 
     function clamp(v,lo,hi){return Math.min(hi,Math.max(lo,v||0));}
-    function updateBpm(val){ bpm=clamp(val,30,300); bpmSlider.value=bpm; bpmInput.value=bpm; }
+    function updateBpm(val){
+      bpm=clamp(val,30,300);
+      bpmSlider.value=bpm;
+      bpmInput.value=bpm;
+      bpmSlider.style.setProperty("--value", bpm);
+    }
     bpmSlider.addEventListener("input",()=>updateBpm(parseInt(bpmSlider.value,10)));
     bpmInput.addEventListener("change",()=>{const v=parseInt(bpmInput.value,10); if(!isNaN(v)) updateBpm(v);});
     bpmUp.addEventListener("click",()=>updateBpm(bpm+1));
@@ -216,7 +398,6 @@
       rampStep.style.display=(rampSelect.value==="up"||rampSelect.value==="down")?"inline-block":"none";
     });
 
-    // Scheduler
     const lookahead=25.0, scheduleAheadTime=0.1;
     function nextNote(){ const secPerBeat=60.0/bpm; nextNoteTime+=secPerBeat; currentBeat=(currentBeat+1)%beatsPerMeasure; }
     function scheduleNote(beatNumber,time){ playClick(beatNumber===0,time); }
@@ -241,25 +422,31 @@
       if(running) return;
       if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
       try{ await audioCtx.resume(); }catch{}
-      await loadSamplesOnce();   // ✅ ensure samples load before start
+      await loadSamplesOnce();
       updateBpm(parseInt(bpmSlider.value,10));
       beatsPerMeasure=parseInt(beatsSelect.value,10);
       currentBeat=0; barCounter=0; nextNoteTime=audioCtx.currentTime+0.05;
-      running=true; scheduler();
+      running=true; 
+      startBtn.style.display="none";
+      stopBtn.style.display="inline-block";
+      scheduler();
     }
-    function stopMetronome(){ running=false; if(timerID) clearTimeout(timerID); }
+    function stopMetronome(){
+      running=false;
+      if(timerID) clearTimeout(timerID);
+      startBtn.style.display="inline-block";
+      stopBtn.style.display="none";
+    }
 
     document.addEventListener("keydown",(e)=>{
       if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); running?stopMetronome():startMetronome(); }
     });
 
-    // Dark mode switch
-    const darkSwitch = document.getElementById("darkSwitch");
-    darkSwitch.addEventListener("change", () => {
-      document.body.classList.toggle("dark-mode", darkSwitch.checked);
-    });
+    const darkSwitch=document.getElementById("darkSwitch");
+    darkSwitch.addEventListener("change",()=>{document.body.classList.toggle("dark-mode",darkSwitch.checked);});
 
-    window.startMetronome=startMetronome; window.stopMetronome=stopMetronome;
+    startBtn.addEventListener("click", startMetronome);
+    stopBtn.addEventListener("click", stopMetronome);
   </script>
 </body>
 </html>
