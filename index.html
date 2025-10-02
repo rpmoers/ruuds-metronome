@@ -107,9 +107,9 @@
       margin-top: -6px;
     }
 
-    /* BPM Input & Tap Button (same height/appearance) */
+    /* BPM Input & Tap Button */
     #bpmInput, #tapTempo {
-      height: 36px; /* slightly bigger for touch */
+      height: 36px;
       line-height: 1;
       padding: 0 10px;
       border: 1px solid var(--gray-400);
@@ -267,7 +267,6 @@
     </div>
   </div>
 
-  <!-- JavaScript logic unchanged -->
   <script>
     let audioCtx=null, baseBuffer=null, slapNormalBuffer=null, slapAccentBuffer=null, samplesReady=false;
     const BASE_URL="https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/metronome-85688.mp3";
@@ -279,23 +278,50 @@
     function playClick(accent=false,time=0){if(!audioCtx||!samplesReady)return;const slapMode=document.getElementById("slapSwitch").checked;const src=audioCtx.createBufferSource();const gain=audioCtx.createGain();if(slapMode){src.buffer=accent?slapAccentBuffer:slapNormalBuffer;gain.gain.value=1.0;}else{src.buffer=baseBuffer;gain.gain.value=accent?1.6:1.0;src.playbackRate.value=accent?1.1:1.0;}src.connect(gain).connect(audioCtx.destination);src.start(time);}
     let running=false,bpm=100,beatsPerMeasure=4,currentBeat=0,barCounter=0,nextNoteTime=0.0,timerID;
     const bpmSlider=document.getElementById("bpmSlider"),bpmInput=document.getElementById("bpmInput"),beatsSelect=document.getElementById("beats"),rampSelect=document.getElementById("ramp"),rampStep=document.getElementById("rampStep"),toggleBtn=document.getElementById("toggleBtn"),tapBtn=document.getElementById("tapTempo");
+
     function clamp(v,lo,hi){return Math.min(hi,Math.max(lo,v||0));}
-    function updateBpm(val){bpm=clamp(val,30,300);bpmSlider.value=bpm;bpmInput.value=bpm;bpmSlider.style.setProperty("--value", bpm);}
+    function updateBpm(val){bpm=clamp(val,30,300);bpmSlider.value=bpm;bpmInput.value=bpm;bpmSlider.style.setProperty("--value", bpm);saveSettings();}
+    
+    // Persistence
+    function saveSettings(){
+      const settings={bpm,beats:beatsSelect.value,ramp:rampSelect.value,rampStep:rampStep.value,slap:document.getElementById("slapSwitch").checked,dark:document.getElementById("darkSwitch").checked};
+      localStorage.setItem("metronomeSettings",JSON.stringify(settings));
+    }
+    function loadSettings(){
+      const saved=localStorage.getItem("metronomeSettings");if(!saved)return;
+      try{
+        const s=JSON.parse(saved);
+        if(s.bpm) updateBpm(s.bpm);
+        if(s.beats) beatsSelect.value=s.beats;
+        if(s.ramp) rampSelect.value=s.ramp;
+        if(s.rampStep) rampStep.value=s.rampStep;
+        if(s.slap!==undefined) document.getElementById("slapSwitch").checked=s.slap;
+        if(s.dark!==undefined){document.getElementById("darkSwitch").checked=s.dark;document.body.classList.toggle("dark-mode",s.dark);}
+        rampSelect.dispatchEvent(new Event("change"));
+      }catch(e){console.warn("Load failed",e);}
+    }
+
     bpmSlider.addEventListener("input",()=>updateBpm(parseInt(bpmSlider.value,10)));
     bpmInput.addEventListener("change",()=>{const v=parseInt(bpmInput.value,10);if(!isNaN(v)) updateBpm(v);});
-    beatsSelect.addEventListener("change",()=>{beatsPerMeasure=parseInt(beatsSelect.value,10);currentBeat=0;});
-    rampSelect.addEventListener("change",()=>{rampStep.style.display=(rampSelect.value==="up"||rampSelect.value==="down")?"inline-block":"none";});
+    beatsSelect.addEventListener("change",()=>{beatsPerMeasure=parseInt(beatsSelect.value,10);currentBeat=0;saveSettings();});
+    rampSelect.addEventListener("change",()=>{rampStep.style.display=(rampSelect.value==="up"||rampSelect.value==="down")?"inline-block":"none";saveSettings();});
+    rampStep.addEventListener("change",saveSettings);
+    document.getElementById("slapSwitch").addEventListener("change",saveSettings);
+    document.getElementById("darkSwitch").addEventListener("change",(e)=>{document.body.classList.toggle("dark-mode",e.target.checked);saveSettings();});
+
     let lastTap=0,tapIntervals=[];tapBtn.addEventListener("click",()=>{const now=Date.now();if(lastTap){tapIntervals.push(now-lastTap);if(tapIntervals.length>4)tapIntervals.shift();const avg=tapIntervals.reduce((a,b)=>a+b,0)/tapIntervals.length;const calc=Math.round(60000/avg);if(calc>0&&isFinite(calc)) updateBpm(calc);}lastTap=now;});
+
     const lookahead=25.0,scheduleAheadTime=0.1;
     function nextNote(){const secPerBeat=60.0/bpm;nextNoteTime+=secPerBeat;currentBeat=(currentBeat+1)%beatsPerMeasure;}
     function scheduleNote(beat,time){playClick(beat===0,time);}
     function scheduler(){if(!running||!audioCtx)return;while(nextNoteTime<audioCtx.currentTime+scheduleAheadTime){scheduleNote(currentBeat,nextNoteTime);nextNote();if(currentBeat===0){barCounter++;if(barCounter%4===0){const step=parseInt(rampStep.value||"1",10);if(rampSelect.value==="up")updateBpm(bpm+step);if(rampSelect.value==="down")updateBpm(bpm-step);}}}timerID=setTimeout(scheduler,lookahead);}
+
     async function startMetronome(){if(running)return;if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();try{await audioCtx.resume();}catch{}await loadSamplesOnce();updateBpm(parseInt(bpmSlider.value,10));beatsPerMeasure=parseInt(beatsSelect.value,10);rampSelect.dispatchEvent(new Event("change"));currentBeat=0;barCounter=0;nextNoteTime=audioCtx.currentTime+0.05;running=true;toggleBtn.textContent="Stop";toggleBtn.className="stop";scheduler();}
     function stopMetronome(){running=false;if(timerID)clearTimeout(timerID);toggleBtn.textContent="Start";toggleBtn.className="start";}
     toggleBtn.addEventListener("click",()=>{running?stopMetronome():startMetronome();});
     document.addEventListener("keydown",(e)=>{if(e.code==="Space"){e.preventDefault();running?stopMetronome():startMetronome();}if(e.code==="ArrowLeft"||e.code==="ArrowDown"){e.preventDefault();updateBpm(bpm-(e.shiftKey?5:1));}if(e.code==="ArrowRight"||e.code==="ArrowUp"){e.preventDefault();updateBpm(bpm+(e.shiftKey?5:1));}if(e.code==="KeyT"){e.preventDefault();tapBtn.click();}});
-    document.getElementById("darkSwitch").addEventListener("change",(e)=>{document.body.classList.toggle("dark-mode",e.target.checked);});
-    updateBpm(parseInt(bpmSlider.value,10));rampSelect.dispatchEvent(new Event("change"));
+
+    loadSettings();
   </script>
 </body>
 </html>
