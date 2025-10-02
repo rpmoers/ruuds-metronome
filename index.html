@@ -102,7 +102,7 @@
 
     /* Inputs, Tap, selects */
     input[type=number], #tapTempo, select {
-      height: 32px;
+      height: 36px; /* ✅ same height for bpm input and tap */
       padding: 6px 8px;
       border: 1px solid var(--gray-400);
       border-radius: 6px;
@@ -112,6 +112,7 @@
       cursor: pointer;
       -webkit-user-select: text;
       user-select: text;
+      box-sizing: border-box;
     }
     #bpmInput { width: 70px; text-align: center; }
     #tapTempo { min-width: 80px; }
@@ -153,11 +154,11 @@
 
     /* Instructions */
     .instructions {
-      font-size: 0.8rem;          /* smaller, like helper text */
+      font-size: 0.8rem;
       color: var(--gray-400);
       text-align: left;
-      display: inline-block;      /* shrink to text width */
-      margin: 8px auto 0 auto;    /* center horizontally */
+      display: inline-block;
+      margin: 8px auto 0 auto;
       -webkit-user-select: text;
       user-select: text;
     }
