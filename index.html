@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ruud's Bass Metronome</title>
 
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-
   <style>
     :root {
       --gray-100: #f9f9f9;
@@ -20,6 +16,7 @@
       --accent-green-dark: #0F9D58;
       --accent-red: #EA4335;
       --accent-red-dark: #C5221F;
+      --wrap-max: 650px;
     }
 
     body {
@@ -27,83 +24,57 @@
       background: var(--gray-100);
       color: var(--gray-900);
       margin: 0;
-      padding: 20px;
+      padding: 20px 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
       transition: background 0.3s, color 0.3s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: var(--wrap-max);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-sizing: border-box;
     }
 
     h1 {
-      font-size: 1.8rem;
+      font-size: 2rem;
       font-weight: 600;
-      margin-bottom: 40px;
+      margin: 0 0 4px 0;
       text-align: center;
       color: var(--gray-800);
       transition: color 0.3s;
-    }
-
-    .control-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin: 12px 0 20px;
       width: 100%;
-      max-width: 650px;
-    }
-    .bpm-group, .other-group {
-      display: flex;
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: 6px;
-    }
-    .bpm-group { flex: 2; }
-    .other-group { flex: 1; }
-
-    .bpm-control {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex: 1;
     }
 
-    .bpm-btn {
+    .switches, .control-row, .buttons {
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 32px;
-      width: 32px;
-      border-radius: 6px;
-      border: 1px solid var(--gray-400);
-      background: var(--gray-100);
-      font-size: 1.2rem;
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--gray-800);
-      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      gap: 12px;
+      width: 100%;
     }
-    .bpm-btn:hover {
-      background: var(--gray-400);
-      color: var(--gray-100);
-    }
+    .switches div { display: flex; align-items: center; gap: 8px; }
 
-    /* Range slider */
+    /* Slider */
     input[type=range] {
       flex: 1;
-      min-width: 100px;
+      min-width: 120px;
+      max-width: 220px;
       appearance: none;
       height: 6px;
       border-radius: 3px;
       background: var(--gray-400);
-      outline: none;
-      margin: 0;
       cursor: pointer;
       --min: 30;
       --max: 300;
       --value: 100;
-      position: relative;
     }
     input[type=range]::-webkit-slider-runnable-track {
       height: 6px;
@@ -122,126 +93,85 @@
       height: 18px;
       border-radius: 50%;
       background: var(--accent-green);
-      cursor: pointer;
       border: none;
-      position: relative;
-      z-index: 2;
-      margin-top: -6px; /* ✅ centers thumb */
-      transition: transform 0.2s;
+      margin-top: -6px;
     }
-    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.1); }
-    input[type=range]::-moz-range-track {
-      height: 6px;
-      border-radius: 3px;
-      background: var(--gray-400);
-    }
-    input[type=range]::-moz-range-progress {
-      height: 6px;
-      border-radius: 3px;
-      background: var(--accent-green);
-    }
-    input[type=range]::-moz-range-thumb {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: var(--accent-green);
-      border: none;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    input[type=range]::-moz-range-thumb:hover { transform: scale(1.1); }
+    input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: var(--gray-400); }
+    input[type=range]::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--accent-green); }
+    input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent-green); border: none; }
 
-    input[type=number], select {
+    /* Inputs, Tap, selects */
+    input[type=number], #tapTempo, select {
+      height: 32px;
       padding: 6px 8px;
       border: 1px solid var(--gray-400);
       border-radius: 6px;
       font-size: 0.9rem;
       background: var(--gray-100);
       color: var(--gray-900);
-      transition: background 0.2s, color 0.2s, border-color 0.2s;
       cursor: pointer;
+      -webkit-user-select: text;
+      user-select: text;
     }
-    input[type=number]:hover, select:hover {
-      background: var(--gray-400);
-      color: var(--gray-100);
-    }
+    #bpmInput { width: 70px; text-align: center; }
+    #tapTempo { min-width: 80px; }
+    #tapTempo:hover { background: var(--gray-400); color: var(--gray-100); }
 
     /* Switch */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 46px;
-      height: 24px;
-      cursor: pointer;
-    }
+    .switch { position: relative; width: 46px; height: 24px; }
     .switch input { display: none; }
     .slider {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
+      position: absolute; inset: 0;
       background: var(--gray-400);
-      border-radius: 24px;
-      transition: background 0.3s;
+      border-radius: 24px; transition: background 0.3s;
     }
     .slider:before {
-      position: absolute;
       content: "";
+      position: absolute;
       height: 18px; width: 18px;
       left: 3px; bottom: 3px;
       background: var(--gray-100);
       border-radius: 50%;
       transition: .3s;
     }
-    .switch:hover .slider { background: var(--gray-600); }
     input:checked + .slider { background: var(--accent-green); }
     input:checked + .slider:before { transform: translateX(22px); }
 
-    /* Buttons */
-    .buttons {
-      margin-top: 20px;
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
+    /* Start/Stop */
     button {
       padding: 10px 20px;
       border: none;
       border-radius: 9999px;
       font-size: 1rem;
       cursor: pointer;
-      color: white;
       transition: background 0.3s;
     }
-    #startBtn { background: var(--accent-green); }
-    #startBtn:hover { background: var(--accent-green-dark); }
-    #stopBtn { background: var(--accent-red); display: none; }
-    #stopBtn:hover { background: var(--accent-red-dark); }
+    #toggleBtn.start { background: var(--accent-green); color: white; }
+    #toggleBtn.start:hover { background: var(--accent-green-dark); }
+    #toggleBtn.stop { background: var(--accent-red); color: white; }
+    #toggleBtn.stop:hover { background: var(--accent-red-dark); }
 
-    @media (max-width:600px){
-      .control-row{flex-direction:column; align-items:stretch;}
-      .bpm-group,.other-group{justify-content:center;width:100%;}
-      .buttons button {
-        font-size: 1.2rem;
-        padding: 14px 28px;
-      }
+    /* Instructions */
+    .instructions {
+      font-size: 0.8rem;          /* smaller, like helper text */
+      color: var(--gray-400);
+      text-align: left;
+      display: inline-block;      /* shrink to text width */
+      margin: 8px auto 0 auto;    /* center horizontally */
+      -webkit-user-select: text;
+      user-select: text;
     }
 
     /* Dark mode */
     body.dark-mode { background: var(--gray-900); color: var(--gray-100); }
     body.dark-mode h1 { color: var(--gray-100); }
-    body.dark-mode .bpm-btn {
+    body.dark-mode .instructions { color: var(--gray-600); }
+    body.dark-mode input[type=number],
+    body.dark-mode select,
+    body.dark-mode #tapTempo {
       background: var(--gray-800);
       color: var(--gray-100);
       border-color: var(--gray-600);
-    }
-    body.dark-mode .bpm-btn:hover { background: var(--gray-600); }
-    body.dark-mode input[type=number], body.dark-mode select {
-      background: var(--gray-800);
-      color: var(--gray-100);
-      border-color: var(--gray-600);
-    }
-    body.dark-mode input[type=number]:hover, body.dark-mode select:hover {
-      background: var(--gray-600);
-      color: var(--gray-100);
     }
     body.dark-mode input[type=range] { background: var(--gray-600); }
     body.dark-mode input[type=range]::-webkit-slider-runnable-track {
@@ -261,19 +191,34 @@
   </style>
 </head>
 <body>
-  <h1>Ruud’s Bass Metronome</h1>
+  <div class="wrap">
+    <h1>Ruud’s Bass Metronome</h1>
 
-  <!-- Controls -->
-  <div class="control-row">
-    <div class="bpm-group">
-      <div class="bpm-control">
-        <button class="bpm-btn" id="bpmDown">–</button>
-        <input type="range" id="bpmSlider" min="30" max="300" value="100">
-        <button class="bpm-btn" id="bpmUp">+</button>
+    <!-- Switches -->
+    <div class="switches">
+      <div><span>Slap</span>
+        <label class="switch">
+          <input type="checkbox" id="slapSwitch">
+          <span class="slider"></span>
+        </label>
       </div>
-      <input type="number" id="bpmInput" min="30" max="300" value="100">
+      <div><span>Dark Mode</span>
+        <label class="switch">
+          <input type="checkbox" id="darkSwitch">
+          <span class="slider"></span>
+        </label>
+      </div>
     </div>
-    <div class="other-group">
+
+    <!-- BPM Controls -->
+    <div class="control-row">
+      <input type="range" id="bpmSlider" min="30" max="300" value="100">
+      <input type="number" id="bpmInput" min="30" max="300" value="100">
+      <button id="tapTempo">Tap</button>
+    </div>
+
+    <!-- Beats & Ramp -->
+    <div class="control-row">
       <select id="beats">
         <option value="2">2/4</option>
         <option value="3">3/4</option>
@@ -287,133 +232,130 @@
         <option value="down">Ramp down</option>
       </select>
       <select id="rampStep" style="display:none;">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
+        <option value="1">1</option><option value="2">2</option>
+        <option value="3">3</option><option value="4">4</option>
         <option value="5">5</option>
       </select>
     </div>
-  </div>
 
-  <!-- Slap + Dark Mode inline -->
-  <div style="margin:10px 0; display:flex; align-items:center; gap:20px;">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <span>Slap</span>
-      <label class="switch">
-        <input type="checkbox" id="slapSwitch">
-        <span class="slider"></span>
-      </label>
+    <!-- Transport -->
+    <div class="buttons">
+      <button id="toggleBtn" class="start">Start</button>
     </div>
-    <div style="display:flex; align-items:center; gap:8px;">
-      <span>Dark Mode</span>
-      <label class="switch">
-        <input type="checkbox" id="darkSwitch">
-        <span class="slider"></span>
-      </label>
-    </div>
-  </div>
 
-  <!-- Transport -->
-  <div class="buttons">
-    <button id="startBtn">Start</button>
-    <button id="stopBtn">Stop</button>
+    <!-- Instructions -->
+    <div class="instructions">
+      Press <b>Space</b> to start and stop.<br>
+      Use the <b>arrow keys</b> to change the speed:<br>
+      – Left / Down = -1 BPM<br>
+      – Right / Up = +1 BPM<br>
+      Hold <b>Shift</b> with arrows for -5 / +5 BPM.<br>
+      Tap the <b>T</b> key a few times to set your own tempo.
+    </div>
   </div>
 
   <script>
-    const VERSION = "1.0.9";
-    const lastVersion = localStorage.getItem("metronome_version");
-    if (lastVersion && lastVersion !== VERSION) {
-      localStorage.setItem("metronome_version", VERSION);
-      location.reload(true);
-    } else {
-      localStorage.setItem("metronome_version", VERSION);
-    }
+    // --- Audio setup ---
+    let audioCtx=null, baseBuffer=null, slapNormalBuffer=null, slapAccentBuffer=null, samplesReady=false;
+    const BASE_URL="https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/metronome-85688.mp3";
+    const SLAP_NORMAL_URL="https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/Alesis-S4-Plus-Muted-Pops-C3.wav";
+    const SLAP_ACCENT_URL="https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/Korg-N1R-Slap-It-C1.wav";
 
-    let audioCtx = null;
-    let baseBuffer = null;
-    let slapNormalBuffer = null;
-    let slapAccentBuffer = null;
-    let samplesReady = false;
-
-    const BASE_URL = "https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/metronome-85688.mp3";
-    const SLAP_NORMAL_URL = "https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/Alesis-S4-Plus-Muted-Pops-C3.wav";
-    const SLAP_ACCENT_URL = "https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/Korg-N1R-Slap-It-C1.wav";
-
-    async function loadSample(url) {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const arr = await res.arrayBuffer();
+    async function loadSample(url){
+      const res=await fetch(url);
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const arr=await res.arrayBuffer();
       return await audioCtx.decodeAudioData(arr);
     }
-
-    async function loadSamplesOnce() {
-      if (samplesReady) return;
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      try {
-        baseBuffer = await loadSample(BASE_URL);
-        slapNormalBuffer = await loadSample(SLAP_NORMAL_URL);
-        slapAccentBuffer = await loadSample(SLAP_ACCENT_URL);
-        samplesReady = true;
-      } catch (e) {
-        console.error("Error loading samples:", e);
-      }
+    async function loadSamplesOnce(){
+      if(samplesReady) return;
+      if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      baseBuffer=await loadSample(BASE_URL);
+      slapNormalBuffer=await loadSample(SLAP_NORMAL_URL);
+      slapAccentBuffer=await loadSample(SLAP_ACCENT_URL);
+      samplesReady=true;
     }
 
-    function playClick(accent=false, time=0) {
-      if (!audioCtx || !samplesReady) return;
-      const slapMode = document.getElementById("slapSwitch").checked;
-      let src = audioCtx.createBufferSource();
-      let gainNode = audioCtx.createGain();
+    function playClick(accent=false,time=0){
+      if(!audioCtx||!samplesReady) return;
+      const slapMode=document.getElementById("slapSwitch").checked;
+      const src=audioCtx.createBufferSource();
+      const gain=audioCtx.createGain();
 
-      if (slapMode) {
+      if(slapMode){
         src.buffer = accent ? slapAccentBuffer : slapNormalBuffer;
-        gainNode.gain.value = 1.0;
-      } else {
+        gain.gain.value = 1.0;
+      }else{
         src.buffer = baseBuffer;
-        gainNode.gain.value = accent ? 1.6 : 1.0;
+        gain.gain.value = accent ? 1.6 : 1.0;
         src.playbackRate.value = accent ? 1.1 : 1.0;
       }
 
-      src.connect(gainNode).connect(audioCtx.destination);
+      src.connect(gain).connect(audioCtx.destination);
       src.start(time);
     }
 
+    // --- State & Elements ---
     let running=false, bpm=100, beatsPerMeasure=4, currentBeat=0, barCounter=0, nextNoteTime=0.0, timerID;
     const bpmSlider=document.getElementById("bpmSlider");
     const bpmInput=document.getElementById("bpmInput");
-    const bpmUp=document.getElementById("bpmUp");
-    const bpmDown=document.getElementById("bpmDown");
     const beatsSelect=document.getElementById("beats");
     const rampSelect=document.getElementById("ramp");
     const rampStep=document.getElementById("rampStep");
-    const startBtn=document.getElementById("startBtn");
-    const stopBtn=document.getElementById("stopBtn");
+    const toggleBtn=document.getElementById("toggleBtn");
+    const tapBtn=document.getElementById("tapTempo");
 
-    function clamp(v,lo,hi){return Math.min(hi,Math.max(lo,v||0));}
+    function clamp(v,lo,hi){ return Math.min(hi,Math.max(lo,v||0)); }
     function updateBpm(val){
-      bpm=clamp(val,30,300);
-      bpmSlider.value=bpm;
-      bpmInput.value=bpm;
+      bpm = clamp(val,30,300);
+      bpmSlider.value = bpm;
+      bpmInput.value = bpm;
       bpmSlider.style.setProperty("--value", bpm);
     }
-    bpmSlider.addEventListener("input",()=>updateBpm(parseInt(bpmSlider.value,10)));
-    bpmInput.addEventListener("change",()=>{const v=parseInt(bpmInput.value,10); if(!isNaN(v)) updateBpm(v);});
-    bpmUp.addEventListener("click",()=>updateBpm(bpm+1));
-    bpmDown.addEventListener("click",()=>updateBpm(bpm-1));
-    beatsSelect.addEventListener("change",()=>{beatsPerMeasure=parseInt(beatsSelect.value,10); currentBeat=0;});
 
+    bpmSlider.addEventListener("input",()=>updateBpm(parseInt(bpmSlider.value,10)));
+    bpmInput.addEventListener("change",()=>{
+      const v=parseInt(bpmInput.value,10);
+      if(!isNaN(v)) updateBpm(v);
+    });
+    beatsSelect.addEventListener("change",()=>{
+      beatsPerMeasure=parseInt(beatsSelect.value,10);
+      currentBeat=0;
+    });
     rampSelect.addEventListener("change",()=>{
-      rampStep.style.display=(rampSelect.value==="up"||rampSelect.value==="down")?"inline-block":"none";
+      const show = (rampSelect.value==="up"||rampSelect.value==="down");
+      rampStep.style.display = show ? "inline-block" : "none";
     });
 
+    // Tap tempo
+    let lastTap=0, tapIntervals=[];
+    tapBtn.addEventListener("click",()=>{
+      const now=Date.now();
+      if(lastTap){
+        tapIntervals.push(now-lastTap);
+        if(tapIntervals.length>4) tapIntervals.shift();
+        const avg=tapIntervals.reduce((a,b)=>a+b,0)/tapIntervals.length;
+        const calc = Math.round(60000/avg);
+        if(calc>0 && isFinite(calc)) updateBpm(calc);
+      }
+      lastTap=now;
+    });
+
+    // --- Scheduler ---
     const lookahead=25.0, scheduleAheadTime=0.1;
-    function nextNote(){ const secPerBeat=60.0/bpm; nextNoteTime+=secPerBeat; currentBeat=(currentBeat+1)%beatsPerMeasure; }
-    function scheduleNote(beatNumber,time){ playClick(beatNumber===0,time); }
+    function nextNote(){
+      const secPerBeat=60.0/bpm;
+      nextNoteTime += secPerBeat;
+      currentBeat = (currentBeat+1)%beatsPerMeasure;
+    }
+    function scheduleNote(beatNumber,time){
+      const accent = (beatNumber===0);
+      playClick(accent,time);
+    }
     function scheduler(){
-      if(!running||!audioCtx)return;
-      while(nextNoteTime<audioCtx.currentTime+scheduleAheadTime){
-        scheduleNote(currentBeat,nextNoteTime);
+      if(!running||!audioCtx) return;
+      while(nextNoteTime < audioCtx.currentTime + scheduleAheadTime){
+        scheduleNote(currentBeat, nextNoteTime);
         nextNote();
         if(currentBeat===0){
           barCounter++;
@@ -432,30 +374,41 @@
       if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
       try{ await audioCtx.resume(); }catch{}
       await loadSamplesOnce();
+
       updateBpm(parseInt(bpmSlider.value,10));
       beatsPerMeasure=parseInt(beatsSelect.value,10);
+      rampSelect.dispatchEvent(new Event("change"));
+
       currentBeat=0; barCounter=0; nextNoteTime=audioCtx.currentTime+0.05;
-      running=true; 
-      startBtn.style.display="none";
-      stopBtn.style.display="inline-block";
+      running=true;
+      toggleBtn.textContent="Stop";
+      toggleBtn.className="stop";
       scheduler();
     }
     function stopMetronome(){
       running=false;
       if(timerID) clearTimeout(timerID);
-      startBtn.style.display="inline-block";
-      stopBtn.style.display="none";
+      toggleBtn.textContent="Start";
+      toggleBtn.className="start";
     }
 
+    toggleBtn.addEventListener("click", ()=>{ running ? stopMetronome() : startMetronome(); });
+
+    // Keyboard
     document.addEventListener("keydown",(e)=>{
-      if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); running?stopMetronome():startMetronome(); }
+      if(e.code==="Space"){ e.preventDefault(); running?stopMetronome():startMetronome(); }
+      if(e.code==="ArrowLeft"||e.code==="ArrowDown"){ e.preventDefault(); updateBpm(bpm-(e.shiftKey?5:1)); }
+      if(e.code==="ArrowRight"||e.code==="ArrowUp"){ e.preventDefault(); updateBpm(bpm+(e.shiftKey?5:1)); }
+      if(e.code==="KeyT"){ e.preventDefault(); tapBtn.click(); }
     });
 
-    const darkSwitch=document.getElementById("darkSwitch");
-    darkSwitch.addEventListener("change",()=>{document.body.classList.toggle("dark-mode",darkSwitch.checked);});
+    // Dark mode
+    document.getElementById("darkSwitch").addEventListener("change",(e)=>{
+      document.body.classList.toggle("dark-mode", e.target.checked);
+    });
 
-    startBtn.addEventListener("click", startMetronome);
-    stopBtn.addEventListener("click", stopMetronome);
+    updateBpm(parseInt(bpmSlider.value,10));
+    rampSelect.dispatchEvent(new Event("change"));
   </script>
 </body>
 </html>
