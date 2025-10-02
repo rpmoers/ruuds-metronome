@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ruud's Bass Metronome</title>
+  <title>Ruud's Metronome</title>
 
   <style>
     :root {
@@ -57,10 +57,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 20px;
       width: 100%;
     }
-    .switches div { display: flex; align-items: center; gap: 8px; }
+
+    .switch-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .switch-label {
+      font-size: 0.9rem;
+      line-height: 1;
+    }
 
     /* Slider */
     input[type=range] {
@@ -96,27 +106,36 @@
       border: none;
       margin-top: -6px;
     }
-    input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: var(--gray-400); }
-    input[type=range]::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--accent-green); }
-    input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent-green); border: none; }
 
-    /* Inputs, Tap, selects */
-    input[type=number], #tapTempo, select {
-      height: 36px; /* ✅ same height for bpm input and tap */
-      padding: 6px 8px;
+    /* BPM Input & Tap Button (same height/appearance) */
+    #bpmInput, #tapTempo {
+      height: 36px; /* slightly bigger for touch */
+      line-height: 1;
+      padding: 0 10px;
       border: 1px solid var(--gray-400);
       border-radius: 6px;
       font-size: 0.9rem;
       background: var(--gray-100);
       color: var(--gray-900);
       cursor: pointer;
-      -webkit-user-select: text;
-      user-select: text;
       box-sizing: border-box;
     }
     #bpmInput { width: 70px; text-align: center; }
     #tapTempo { min-width: 80px; }
     #tapTempo:hover { background: var(--gray-400); color: var(--gray-100); }
+
+    /* Selects */
+    select {
+      height: 36px;
+      padding: 0 10px;
+      border: 1px solid var(--gray-400);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: var(--gray-100);
+      color: var(--gray-900);
+      cursor: pointer;
+      box-sizing: border-box;
+    }
 
     /* Switch */
     .switch { position: relative; width: 46px; height: 24px; }
@@ -152,13 +171,16 @@
     #toggleBtn.stop { background: var(--accent-red); color: white; }
     #toggleBtn.stop:hover { background: var(--accent-red-dark); }
 
-    /* Instructions */
+    /* Instructions Card */
     .instructions {
       font-size: 0.8rem;
       color: var(--gray-400);
       text-align: left;
       display: inline-block;
-      margin: 8px auto 0 auto;
+      margin: 40px auto 0 auto;
+      padding: 12px 16px;
+      border: 1px solid var(--gray-400);
+      border-radius: 8px;
       -webkit-user-select: text;
       user-select: text;
     }
@@ -166,48 +188,38 @@
     /* Dark mode */
     body.dark-mode { background: var(--gray-900); color: var(--gray-100); }
     body.dark-mode h1 { color: var(--gray-100); }
-    body.dark-mode .instructions { color: var(--gray-600); }
-    body.dark-mode input[type=number],
-    body.dark-mode select,
-    body.dark-mode #tapTempo {
+    body.dark-mode .instructions {
+      color: var(--gray-600);
+      border-color: var(--gray-600);
+    }
+    body.dark-mode #bpmInput,
+    body.dark-mode #tapTempo,
+    body.dark-mode select {
       background: var(--gray-800);
       color: var(--gray-100);
       border-color: var(--gray-600);
     }
-    body.dark-mode input[type=range] { background: var(--gray-600); }
-    body.dark-mode input[type=range]::-webkit-slider-runnable-track {
-      background: linear-gradient(
-        to right,
-        var(--accent-green) 0%,
-        var(--accent-green) calc((var(--value) - var(--min)) / (var(--max) - var(--min)) * 100%),
-        var(--gray-600) calc((var(--value) - var(--min)) / (var(--max) - var(--min)) * 100%),
-        var(--gray-600) 100%
-      );
-    }
-    body.dark-mode input[type=range]::-moz-range-track { background: var(--gray-600); }
-    body.dark-mode input[type=range]::-moz-range-progress { background: var(--accent-green); }
-    body.dark-mode .slider { background: var(--gray-600); }
-    body.dark-mode .slider:before { background: var(--gray-100); }
-    body.dark-mode input:checked + .slider { background: var(--accent-green); }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Ruud’s Bass Metronome</h1>
+    <h1>Ruud’s Metronome</h1>
 
     <!-- Switches -->
     <div class="switches">
-      <div><span>Slap</span>
+      <div class="switch-item">
         <label class="switch">
           <input type="checkbox" id="slapSwitch">
           <span class="slider"></span>
         </label>
+        <span class="switch-label">Slap</span>
       </div>
-      <div><span>Dark Mode</span>
+      <div class="switch-item">
         <label class="switch">
           <input type="checkbox" id="darkSwitch">
           <span class="slider"></span>
         </label>
+        <span class="switch-label">Dark Mode</span>
       </div>
     </div>
 
@@ -244,7 +256,7 @@
       <button id="toggleBtn" class="start">Start</button>
     </div>
 
-    <!-- Instructions -->
+    <!-- Instructions Card -->
     <div class="instructions">
       Press <b>Space</b> to start and stop.<br>
       Use the <b>arrow keys</b> to change the speed:<br>
@@ -255,161 +267,35 @@
     </div>
   </div>
 
+  <!-- JavaScript logic unchanged -->
   <script>
-    // --- Audio setup ---
     let audioCtx=null, baseBuffer=null, slapNormalBuffer=null, slapAccentBuffer=null, samplesReady=false;
     const BASE_URL="https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/metronome-85688.mp3";
     const SLAP_NORMAL_URL="https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/Alesis-S4-Plus-Muted-Pops-C3.wav";
     const SLAP_ACCENT_URL="https://raw.githubusercontent.com/rpmoers/ruuds-metronome/main/Korg-N1R-Slap-It-C1.wav";
 
-    async function loadSample(url){
-      const res=await fetch(url);
-      if(!res.ok) throw new Error("HTTP "+res.status);
-      const arr=await res.arrayBuffer();
-      return await audioCtx.decodeAudioData(arr);
-    }
-    async function loadSamplesOnce(){
-      if(samplesReady) return;
-      if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-      baseBuffer=await loadSample(BASE_URL);
-      slapNormalBuffer=await loadSample(SLAP_NORMAL_URL);
-      slapAccentBuffer=await loadSample(SLAP_ACCENT_URL);
-      samplesReady=true;
-    }
-
-    function playClick(accent=false,time=0){
-      if(!audioCtx||!samplesReady) return;
-      const slapMode=document.getElementById("slapSwitch").checked;
-      const src=audioCtx.createBufferSource();
-      const gain=audioCtx.createGain();
-
-      if(slapMode){
-        src.buffer = accent ? slapAccentBuffer : slapNormalBuffer;
-        gain.gain.value = 1.0;
-      }else{
-        src.buffer = baseBuffer;
-        gain.gain.value = accent ? 1.6 : 1.0;
-        src.playbackRate.value = accent ? 1.1 : 1.0;
-      }
-
-      src.connect(gain).connect(audioCtx.destination);
-      src.start(time);
-    }
-
-    // --- State & Elements ---
-    let running=false, bpm=100, beatsPerMeasure=4, currentBeat=0, barCounter=0, nextNoteTime=0.0, timerID;
-    const bpmSlider=document.getElementById("bpmSlider");
-    const bpmInput=document.getElementById("bpmInput");
-    const beatsSelect=document.getElementById("beats");
-    const rampSelect=document.getElementById("ramp");
-    const rampStep=document.getElementById("rampStep");
-    const toggleBtn=document.getElementById("toggleBtn");
-    const tapBtn=document.getElementById("tapTempo");
-
-    function clamp(v,lo,hi){ return Math.min(hi,Math.max(lo,v||0)); }
-    function updateBpm(val){
-      bpm = clamp(val,30,300);
-      bpmSlider.value = bpm;
-      bpmInput.value = bpm;
-      bpmSlider.style.setProperty("--value", bpm);
-    }
-
+    async function loadSample(url){const res=await fetch(url);if(!res.ok) throw new Error("HTTP "+res.status);const arr=await res.arrayBuffer();return await audioCtx.decodeAudioData(arr);}
+    async function loadSamplesOnce(){if(samplesReady)return;if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();baseBuffer=await loadSample(BASE_URL);slapNormalBuffer=await loadSample(SLAP_NORMAL_URL);slapAccentBuffer=await loadSample(SLAP_ACCENT_URL);samplesReady=true;}
+    function playClick(accent=false,time=0){if(!audioCtx||!samplesReady)return;const slapMode=document.getElementById("slapSwitch").checked;const src=audioCtx.createBufferSource();const gain=audioCtx.createGain();if(slapMode){src.buffer=accent?slapAccentBuffer:slapNormalBuffer;gain.gain.value=1.0;}else{src.buffer=baseBuffer;gain.gain.value=accent?1.6:1.0;src.playbackRate.value=accent?1.1:1.0;}src.connect(gain).connect(audioCtx.destination);src.start(time);}
+    let running=false,bpm=100,beatsPerMeasure=4,currentBeat=0,barCounter=0,nextNoteTime=0.0,timerID;
+    const bpmSlider=document.getElementById("bpmSlider"),bpmInput=document.getElementById("bpmInput"),beatsSelect=document.getElementById("beats"),rampSelect=document.getElementById("ramp"),rampStep=document.getElementById("rampStep"),toggleBtn=document.getElementById("toggleBtn"),tapBtn=document.getElementById("tapTempo");
+    function clamp(v,lo,hi){return Math.min(hi,Math.max(lo,v||0));}
+    function updateBpm(val){bpm=clamp(val,30,300);bpmSlider.value=bpm;bpmInput.value=bpm;bpmSlider.style.setProperty("--value", bpm);}
     bpmSlider.addEventListener("input",()=>updateBpm(parseInt(bpmSlider.value,10)));
-    bpmInput.addEventListener("change",()=>{
-      const v=parseInt(bpmInput.value,10);
-      if(!isNaN(v)) updateBpm(v);
-    });
-    beatsSelect.addEventListener("change",()=>{
-      beatsPerMeasure=parseInt(beatsSelect.value,10);
-      currentBeat=0;
-    });
-    rampSelect.addEventListener("change",()=>{
-      const show = (rampSelect.value==="up"||rampSelect.value==="down");
-      rampStep.style.display = show ? "inline-block" : "none";
-    });
-
-    // Tap tempo
-    let lastTap=0, tapIntervals=[];
-    tapBtn.addEventListener("click",()=>{
-      const now=Date.now();
-      if(lastTap){
-        tapIntervals.push(now-lastTap);
-        if(tapIntervals.length>4) tapIntervals.shift();
-        const avg=tapIntervals.reduce((a,b)=>a+b,0)/tapIntervals.length;
-        const calc = Math.round(60000/avg);
-        if(calc>0 && isFinite(calc)) updateBpm(calc);
-      }
-      lastTap=now;
-    });
-
-    // --- Scheduler ---
-    const lookahead=25.0, scheduleAheadTime=0.1;
-    function nextNote(){
-      const secPerBeat=60.0/bpm;
-      nextNoteTime += secPerBeat;
-      currentBeat = (currentBeat+1)%beatsPerMeasure;
-    }
-    function scheduleNote(beatNumber,time){
-      const accent = (beatNumber===0);
-      playClick(accent,time);
-    }
-    function scheduler(){
-      if(!running||!audioCtx) return;
-      while(nextNoteTime < audioCtx.currentTime + scheduleAheadTime){
-        scheduleNote(currentBeat, nextNoteTime);
-        nextNote();
-        if(currentBeat===0){
-          barCounter++;
-          if(barCounter%4===0){
-            const step=parseInt(rampStep.value||"1",10);
-            if(rampSelect.value==="up") updateBpm(bpm+step);
-            if(rampSelect.value==="down") updateBpm(bpm-step);
-          }
-        }
-      }
-      timerID=setTimeout(scheduler,lookahead);
-    }
-
-    async function startMetronome(){
-      if(running) return;
-      if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-      try{ await audioCtx.resume(); }catch{}
-      await loadSamplesOnce();
-
-      updateBpm(parseInt(bpmSlider.value,10));
-      beatsPerMeasure=parseInt(beatsSelect.value,10);
-      rampSelect.dispatchEvent(new Event("change"));
-
-      currentBeat=0; barCounter=0; nextNoteTime=audioCtx.currentTime+0.05;
-      running=true;
-      toggleBtn.textContent="Stop";
-      toggleBtn.className="stop";
-      scheduler();
-    }
-    function stopMetronome(){
-      running=false;
-      if(timerID) clearTimeout(timerID);
-      toggleBtn.textContent="Start";
-      toggleBtn.className="start";
-    }
-
-    toggleBtn.addEventListener("click", ()=>{ running ? stopMetronome() : startMetronome(); });
-
-    // Keyboard
-    document.addEventListener("keydown",(e)=>{
-      if(e.code==="Space"){ e.preventDefault(); running?stopMetronome():startMetronome(); }
-      if(e.code==="ArrowLeft"||e.code==="ArrowDown"){ e.preventDefault(); updateBpm(bpm-(e.shiftKey?5:1)); }
-      if(e.code==="ArrowRight"||e.code==="ArrowUp"){ e.preventDefault(); updateBpm(bpm+(e.shiftKey?5:1)); }
-      if(e.code==="KeyT"){ e.preventDefault(); tapBtn.click(); }
-    });
-
-    // Dark mode
-    document.getElementById("darkSwitch").addEventListener("change",(e)=>{
-      document.body.classList.toggle("dark-mode", e.target.checked);
-    });
-
-    updateBpm(parseInt(bpmSlider.value,10));
-    rampSelect.dispatchEvent(new Event("change"));
+    bpmInput.addEventListener("change",()=>{const v=parseInt(bpmInput.value,10);if(!isNaN(v)) updateBpm(v);});
+    beatsSelect.addEventListener("change",()=>{beatsPerMeasure=parseInt(beatsSelect.value,10);currentBeat=0;});
+    rampSelect.addEventListener("change",()=>{rampStep.style.display=(rampSelect.value==="up"||rampSelect.value==="down")?"inline-block":"none";});
+    let lastTap=0,tapIntervals=[];tapBtn.addEventListener("click",()=>{const now=Date.now();if(lastTap){tapIntervals.push(now-lastTap);if(tapIntervals.length>4)tapIntervals.shift();const avg=tapIntervals.reduce((a,b)=>a+b,0)/tapIntervals.length;const calc=Math.round(60000/avg);if(calc>0&&isFinite(calc)) updateBpm(calc);}lastTap=now;});
+    const lookahead=25.0,scheduleAheadTime=0.1;
+    function nextNote(){const secPerBeat=60.0/bpm;nextNoteTime+=secPerBeat;currentBeat=(currentBeat+1)%beatsPerMeasure;}
+    function scheduleNote(beat,time){playClick(beat===0,time);}
+    function scheduler(){if(!running||!audioCtx)return;while(nextNoteTime<audioCtx.currentTime+scheduleAheadTime){scheduleNote(currentBeat,nextNoteTime);nextNote();if(currentBeat===0){barCounter++;if(barCounter%4===0){const step=parseInt(rampStep.value||"1",10);if(rampSelect.value==="up")updateBpm(bpm+step);if(rampSelect.value==="down")updateBpm(bpm-step);}}}timerID=setTimeout(scheduler,lookahead);}
+    async function startMetronome(){if(running)return;if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();try{await audioCtx.resume();}catch{}await loadSamplesOnce();updateBpm(parseInt(bpmSlider.value,10));beatsPerMeasure=parseInt(beatsSelect.value,10);rampSelect.dispatchEvent(new Event("change"));currentBeat=0;barCounter=0;nextNoteTime=audioCtx.currentTime+0.05;running=true;toggleBtn.textContent="Stop";toggleBtn.className="stop";scheduler();}
+    function stopMetronome(){running=false;if(timerID)clearTimeout(timerID);toggleBtn.textContent="Start";toggleBtn.className="start";}
+    toggleBtn.addEventListener("click",()=>{running?stopMetronome():startMetronome();});
+    document.addEventListener("keydown",(e)=>{if(e.code==="Space"){e.preventDefault();running?stopMetronome():startMetronome();}if(e.code==="ArrowLeft"||e.code==="ArrowDown"){e.preventDefault();updateBpm(bpm-(e.shiftKey?5:1));}if(e.code==="ArrowRight"||e.code==="ArrowUp"){e.preventDefault();updateBpm(bpm+(e.shiftKey?5:1));}if(e.code==="KeyT"){e.preventDefault();tapBtn.click();}});
+    document.getElementById("darkSwitch").addEventListener("change",(e)=>{document.body.classList.toggle("dark-mode",e.target.checked);});
+    updateBpm(parseInt(bpmSlider.value,10));rampSelect.dispatchEvent(new Event("change"));
   </script>
 </body>
 </html>
