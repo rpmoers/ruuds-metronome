@@ -567,6 +567,41 @@ window.addEventListener("DOMContentLoaded", () => {
     accentSelect.value = savedAccent;
     accentBeat = parseInt(savedAccent, 10);
   }
+// --- Mobile BPM picker setup ---
+function isTouchDevice() {
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+}
+
+if (isTouchDevice()) {
+  const bpmInput = document.getElementById("bpmInput");
+  const bpmSelect = document.createElement("select");
+  bpmSelect.id = "bpmPicker";
+  bpmSelect.style.height = bpmInput.style.height;
+  bpmSelect.style.border = bpmInput.style.border;
+  bpmSelect.style.borderRadius = bpmInput.style.borderRadius;
+  bpmSelect.style.fontSize = bpmInput.style.fontSize;
+  bpmSelect.style.padding = bpmInput.style.padding;
+  bpmSelect.style.width = bpmInput.style.width;
+  bpmSelect.style.background = bpmInput.style.background;
+  bpmSelect.style.color = bpmInput.style.color;
+
+  // Populate BPM values
+  for (let i = 30; i <= 300; i++) {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = i;
+    bpmSelect.appendChild(opt);
+  }
+
+  // Sync both ways
+  bpmSelect.value = bpmInput.value;
+  bpmSelect.addEventListener("change", () => updateBpm(parseInt(bpmSelect.value, 10)));
+  bpmSlider.addEventListener("input", () => bpmSelect.value = bpmSlider.value);
+
+  // Replace number input visually
+  bpmInput.style.display = "none";
+  bpmInput.parentNode.insertBefore(bpmSelect, bpmInput.nextSibling);
+}
 });
   </script>
     <footer>
