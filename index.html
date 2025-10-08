@@ -250,7 +250,16 @@ body.dark-mode .desc {
       background: var(--gray-800); color: var(--gray-100); border-color: var(--gray-600);
     }
     body.dark-mode input[type=range] { background: var(--gray-600); }
-    body.dark-mode .slider { background: var(--gray-600); }
+        /* Fix switch colors in dark mode */
+    body.dark-mode .slider {
+      background: var(--gray-700);
+    }
+    body.dark-mode .slider:before {
+      background: var(--gray-200);
+    }
+    body.dark-mode input:checked + .slider {
+      background: var(--accent-green);
+    }
     body.dark-mode .instructions {
       color: #f6f6f6; background: var(--gray-900); border: 1px solid var(--gray-600);
     }
