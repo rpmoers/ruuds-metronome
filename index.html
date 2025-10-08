@@ -194,18 +194,54 @@
     #toggleBtn.stop:hover { background: var(--accent-red-dark); }
 
     /* Instructions */
-    .instructions {
-      font-size: 0.85rem;
-      background: var(--gray-100);
-      color: var(--gray-700);
-      border: 1px solid var(--gray-500);
-      text-align: left;
-      padding: 14px 18px;
-      border-radius: 8px;
-      width: 100%;
-      line-height: 1.6;
-      box-sizing: border-box;
-    }
+.instructions {
+  font-size: 0.85rem;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border: none;
+  text-align: left;
+  padding: 14px 18px;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.shortcuts {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.shortcuts td {
+  padding: 4px 0;
+  vertical-align: middle;
+  border: none;
+}
+
+.key {
+  font-weight: 600;
+  color: var(--gray-800);
+  width: 140px;
+  white-space: nowrap;
+}
+
+.desc {
+  color: var(--gray-700);
+}
+
+/* Dark mode */
+body.dark-mode .instructions {
+  background: var(--gray-900);
+  color: var(--gray-100);
+}
+
+body.dark-mode .key {
+  color: var(--gray-100);
+}
+
+body.dark-mode .desc {
+  color: var(--gray-400);
+}
 
     /* Dark mode */
     body.dark-mode { background: var(--gray-900); color: var(--gray-100); }
@@ -296,32 +332,20 @@
       </div>
     </section>
 
-  <section>
-    <div class="instructions">
-      <h2 style="margin-top:0;">Keyboard Shortcuts</h2>
-      <div class="shortcut">
-        <span class="key">␣ Space</span><span class="desc">Start / Stop</span>
+    <section>
+      <div class="instructions">
+        <h2 style="margin-top:0;">Keyboard Shortcuts</h2>
+        <table class="shortcuts">
+          <tr><td class="key">Spacebar</td><td class="desc">Start / Stop</td></tr>
+          <tr><td class="key">Arrow Left / Down</td><td class="desc">Decrease tempo</td></tr>
+          <tr><td class="key">Arrow Right / Up</td><td class="desc">Increase tempo</td></tr>
+          <tr><td class="key">Shift + Arrows</td><td class="desc">Change tempo faster</td></tr>
+          <tr><td class="key">T</td><td class="desc">Tap to set tempo</td></tr>
+          <tr><td class="key">+</td><td class="desc">Increase volume</td></tr>
+          <tr><td class="key">−</td><td class="desc">Decrease volume</td></tr>
+        </table>
       </div>
-      <div class="shortcut">
-        <span class="key">← / ↓</span><span class="desc">Decrease tempo</span>
-      </div>
-      <div class="shortcut">
-        <span class="key">→ / ↑</span><span class="desc">Increase tempo</span>
-      </div>
-      <div class="shortcut">
-        <span class="key">⇧ + ←→ / ↓↑</span><span class="desc">Larger tempo change</span>
-      </div>
-      <div class="shortcut">
-        <span class="key">T</span><span class="desc">Tap tempo</span>
-      </div>
-      <div class="shortcut">
-        <span class="key">+</span><span class="desc">Raise volume</span>
-      </div>
-      <div class="shortcut">
-        <span class="key">−</span><span class="desc">Lower volume</span>
-      </div>
-    </div>
-  </section>
+    </section>
   </div>
 
   <script>
