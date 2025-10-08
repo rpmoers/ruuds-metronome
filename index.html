@@ -478,6 +478,36 @@
     // Init UI state
     updateRampLabels(rampSelect.value);
     updateAccentOptions();
+    
+    // --- Persist user settings (accent, ramp, rampStep) ---
+window.addEventListener("beforeunload", () => {
+  localStorage.setItem("accentBeat", accentSelect.value);
+  localStorage.setItem("rampDirection", rampSelect.value);
+  localStorage.setItem("rampStep", rampStep.value);
+});
+
+// --- Restore on load ---
+window.addEventListener("DOMContentLoaded", () => {
+  // Restore ramp direction
+  const savedRamp = localStorage.getItem("rampDirection");
+  if (savedRamp) {
+    rampSelect.value = savedRamp;
+    updateRampLabels(savedRamp);
+  }
+
+  // Restore ramp step
+  const savedStep = localStorage.getItem("rampStep");
+  if (savedStep) {
+    rampStep.value = savedStep;
+  }
+
+  // Restore accent
+  const savedAccent = localStorage.getItem("accentBeat");
+  if (savedAccent !== null) {
+    accentSelect.value = savedAccent;
+    accentBeat = parseInt(savedAccent, 10);
+  }
+});
   </script>
 </body>
 </html>
