@@ -464,17 +464,27 @@
     });
 
     // init
-    updateAccentOptions();
-    updateRampLabels("off");
-    
-    // Restore dark mode state from localStorage
-    window.addEventListener("DOMContentLoaded", () => {
-      const savedDark = localStorage.getItem("darkMode");
-      if (savedDark === "true") {
-        document.body.classList.add("dark-mode");
-        document.getElementById("darkSwitch").checked = true;
-      }
-    });
+function updateAccentOptions() {
+  const previous = accentSelect.value;
+  accentSelect.innerHTML = '';
+  for (let i = 0; i < beatsPerMeasure; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `Beat ${i + 1}`;
+    accentSelect.appendChild(opt);
+  }
+  const none = document.createElement('option');
+  none.value = -1;
+  none.textContent = 'None';
+  accentSelect.appendChild(none);
+
+  // Restore last selected accent if valid
+  if ([...accentSelect.options].some(o => o.value === previous)) {
+    accentSelect.value = previous;
+  } else {
+    accentSelect.value = -1; // Default to None if mismatch
+  }
+}
     
     // Persist dark mode toggle
     document.getElementById("darkSwitch").addEventListener("change", (e) => {
