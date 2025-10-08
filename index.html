@@ -339,9 +339,12 @@
       rampStep.style.display = direction === "off" ? "none" : "inline-block";
     }
 
+    // ---- Accent options (single source of truth) ----
     function updateAccentOptions() {
-      // remember previous selection if possible
-      const prev = Number.isFinite(parseInt(accentSelect.value,10)) ? parseInt(accentSelect.value,10) : 0;
+      // remember previous, allow -1 ("None") to persist
+      let prev = parseInt(accentSelect.value, 10);
+      if (isNaN(prev)) prev = -1;
+
       accentSelect.innerHTML = '';
       for (let i = 0; i < beatsPerMeasure; i++) {
         const opt = document.createElement('option');
@@ -354,16 +357,19 @@
       none.textContent = 'None';
       accentSelect.appendChild(none);
 
-      // restore previous if still valid, otherwise default to beat 1
-      const restore = (prev >= 0 && prev < beatsPerMeasure) ? prev : 0;
+      // restore previous selection (including -1), else default to Beat 1
+      let restore;
+      if (prev === -1) restore = -1;
+      else if (prev >= 0 && prev < beatsPerMeasure) restore = prev;
+      else restore = 0;
+
       accentSelect.value = String(restore);
-      accentBeat = parseInt(accentSelect.value, 10);
+      accentBeat = restore;
     }
 
     beatsSelect.addEventListener("change",()=>{
       beatsPerMeasure=parseInt(beatsSelect.value,10);
       updateAccentOptions();
-      // reset cycle position so accents line up immediately after a meter change
       currentBeat = 0;
     });
 
@@ -377,9 +383,6 @@
       const src=audioCtx.createBufferSource();
       const gain=audioCtx.createGain();
 
-      // Keep your original sound character:
-      // Slap mode: different samples for normal vs accent
-      // Non-slap mode: base click with louder + slightly faster accent
       if (slapMode) {
         src.buffer = accent ? slapAccentBuffer : slapNormalBuffer;
         gain.gain.value = masterVolume;
@@ -420,7 +423,7 @@
       await loadSamplesOnce();
       updateBpm(parseInt(bpmSlider.value,10));
       beatsPerMeasure=parseInt(beatsSelect.value,10);
-      updateAccentOptions(); // preserves current selection
+      updateAccentOptions(); // preserves current selection, including "None"
       currentBeat=0; barCounter=0;
       nextNoteTime=audioCtx.currentTime+0.05;
       running=true;
@@ -436,9 +439,18 @@
     toggleBtn.addEventListener("click",()=>{running?stopMetronome():startMetronome();});
     bpmSlider.addEventListener("input",()=>updateBpm(parseInt(bpmSlider.value,10)));
     bpmInput.addEventListener("change",()=>{const v=parseInt(bpmInput.value,10);if(!isNaN(v)) updateBpm(v);});
-    accentSelect.addEventListener("change",()=>{accentBeat=parseInt(accentSelect.value);});
+    accentSelect.addEventListener("change",()=>{accentBeat=parseInt(accentSelect.value,10);});
     volumeSlider.addEventListener("input",()=>updateVolume(volumeSlider.value/100));
-    document.getElementById("darkSwitch").addEventListener("change",(e)=>{document.body.classList.toggle("dark-mode",e.target.checked);});
+
+    // Dark mode: apply on load and persist on change
+    const darkSaved = localStorage.getItem("darkMode") === "true";
+    document.getElementById("darkSwitch").checked = darkSaved;
+    document.body.classList.toggle("dark-mode", darkSaved);
+    document.getElementById("darkSwitch").addEventListener("change",(e)=>{
+      const isDark = e.target.checked;
+      document.body.classList.toggle("dark-mode", isDark);
+      localStorage.setItem("darkMode", String(isDark));
+    });
 
     // Tap tempo (average of last up to 4 taps)
     let lastTap=0,tapIntervals=[];
@@ -463,35 +475,9 @@
       if(e.code==="KeyT"){e.preventDefault();tapBtn.click();}
     });
 
-    // init
-function updateAccentOptions() {
-  const previous = accentSelect.value;
-  accentSelect.innerHTML = '';
-  for (let i = 0; i < beatsPerMeasure; i++) {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = `Beat ${i + 1}`;
-    accentSelect.appendChild(opt);
-  }
-  const none = document.createElement('option');
-  none.value = -1;
-  none.textContent = 'None';
-  accentSelect.appendChild(none);
-
-  // Restore last selected accent if valid
-  if ([...accentSelect.options].some(o => o.value === previous)) {
-    accentSelect.value = previous;
-  } else {
-    accentSelect.value = -1; // Default to None if mismatch
-  }
-}
-    
-    // Persist dark mode toggle
-    document.getElementById("darkSwitch").addEventListener("change", (e) => {
-      const isDark = e.target.checked;
-      document.body.classList.toggle("dark-mode", isDark);
-      localStorage.setItem("darkMode", isDark);
-    });
+    // Init UI state
+    updateRampLabels(rampSelect.value);
+    updateAccentOptions();
   </script>
 </body>
 </html>
